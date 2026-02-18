@@ -1,8 +1,9 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { ConnectStripeButton } from "@/components/dashboard/ConnectStripeButton";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { ConnectRazorpayButton } from "@/components/dashboard/ConnectRazorpayButton";
+import { CheckCircle2 } from "lucide-react";
+import RazorpayCheckoutButton from "@/components/dashboard/RazorpayCheckoutButton";
 
 export default async function BillingPage({
     searchParams,
@@ -27,7 +28,7 @@ export default async function BillingPage({
     if (!tenantUser) return <div>Gym not found.</div>;
 
     const tenant = tenantUser.tenant;
-    const isConnected = !!tenant.stripeConnectId;
+    const isConnected = !!tenant.razorpayAccountId;
     const isSuccess = searchParams['connect'] === 'success';
     const status = tenant.tenantSubscription?.status || 'trialing';
 
@@ -41,14 +42,10 @@ export default async function BillingPage({
             {isSuccess && (
                 <div className="rounded-md bg-green-50 p-4 border border-green-200">
                     <div className="flex">
-                        <div className="flex-shrink-0">
-                            <CheckCircle2 className="h-5 w-5 text-green-400" aria-hidden="true" />
-                        </div>
+                        <CheckCircle2 className="h-5 w-5 text-green-400" aria-hidden="true" />
                         <div className="ml-3">
                             <h3 className="text-sm font-medium text-green-800">Account Connected</h3>
-                            <div className="mt-2 text-sm text-green-700">
-                                <p>Your Stripe account has been successfully connected for payouts.</p>
-                            </div>
+                            <p className="mt-2 text-sm text-green-700">Your bank account has been successfully connected for payouts.</p>
                         </div>
                     </div>
                 </div>
@@ -72,31 +69,34 @@ export default async function BillingPage({
                                 {status.toUpperCase()}
                             </span>
                         </div>
-                        <button className="w-full mt-4 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                            Manage Subscription
-                        </button>
+                        {!tenant.tenantSubscription && (
+                            <div className="mt-4 space-y-2">
+                                <p className="text-xs text-gray-500">Choose a plan to get started:</p>
+                                <RazorpayCheckoutButton plan="starter" label="Subscribe — Starter" />
+                                <RazorpayCheckoutButton plan="growth" label="Subscribe — Growth" />
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Connect Payouts */}
+                {/* Payout Settings */}
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">Payout Settings</h2>
                     <div className="space-y-4">
                         <p className="text-sm text-gray-500">
-                            Connect your bank account to receive payouts from member bookings.
+                            Connect your bank account to receive payouts from member bookings via Razorpay.
                         </p>
-
                         {isConnected ? (
                             <div className="rounded-md bg-gray-50 p-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded bg-[#635BFF] flex items-center justify-center text-white font-bold text-xs">S</div>
+                                    <div className="h-8 w-8 rounded bg-blue-600 flex items-center justify-center text-white font-bold text-xs">R</div>
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900">Stripe Connected</p>
-                                        <p className="text-xs text-gray-500">Account ID: {tenant.stripeConnectId}</p>
+                                        <p className="text-sm font-medium text-gray-900">Razorpay Connected</p>
+                                        <p className="text-xs text-gray-500">Account: {tenant.razorpayAccountId}</p>
                                     </div>
                                 </div>
                                 <div className="mt-4">
-                                    <ConnectStripeButton isConnected={true} />
+                                    <ConnectRazorpayButton isConnected={true} accountRef={tenant.razorpayAccountId ?? undefined} />
                                 </div>
                             </div>
                         ) : (
@@ -104,7 +104,7 @@ export default async function BillingPage({
                                 <p className="text-sm text-gray-600 mb-4">
                                     You need to set up payouts to accept payments from members.
                                 </p>
-                                <ConnectStripeButton isConnected={false} />
+                                <ConnectRazorpayButton isConnected={false} />
                             </div>
                         )}
                     </div>

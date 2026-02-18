@@ -14,6 +14,8 @@ type SecurityEventType =
     | "CRON_FAILED"
     | "STRIPE_WEBHOOK_RECEIVED"
     | "STRIPE_WEBHOOK_FAILED"
+    | "RAZORPAY_WEBHOOK_RECEIVED"
+    | "RAZORPAY_WEBHOOK_FAILED"
     | "RATE_LIMIT_EXCEEDED"
     | "SENSITIVE_DATA_ACCESS";
 
@@ -75,7 +77,7 @@ function log(level: "INFO" | "WARN" | "ERROR", event: SecurityEventType, context
 
 function redact(obj?: Record<string, any>): Record<string, any> | undefined {
     if (!obj) return undefined;
-    const sensitiveKeys = ["password", "token", "secret", "credit_card", "cvv", "stripeSignature"];
+    const sensitiveKeys = ["password", "token", "secret", "credit_card", "cvv", "stripeSignature", "razorpaySignature"];
     const newObj = { ...obj };
 
     for (const key of Object.keys(newObj)) {
