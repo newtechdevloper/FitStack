@@ -1,0 +1,322 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+// -----------------------------------------------------------------------------
+// GLOBAL PLATFORM MODELS
+// -----------------------------------------------------------------------------
+
+// enum GlobalRole removed for SQLite
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // Hashed password for credentials auth
+  globalRole    String @default("USER")
+  
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Relations to Tenants (Memberships/Staff roles)
+  memberships   TenantUser[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// -----------------------------------------------------------------------------
+// TENANT MODELS
+// -----------------------------------------------------------------------------
+
+// enum SubscriptionStatus removed for SQLite
+
+model Tenant {
+  id            String   @id @default(cuid())
+  slug          String   @unique // Subdomain: goldgym.gymnexus.com
+  name          String
+  logoUrl       String?
+  primaryColor  String?  @default("#000000")
+  secondaryColor String? @default("#ffffff")
+  
+  // Platform Billing (SaaS)
+  planId             String?
+  plan               Plan?    @relation(fields: [planId], references: [id])
+  
+  stripeCustomerId   String?
+  tenantSubscription TenantSubscription?
+
+  // Gym Billing (Connect)
+  stripeConnectId    String? // The gym's connected Stripe account ID
+  chargesEnabled     Boolean @default(false)
+
+  // Financial Performance Cache (Updated nightly)
+  lifetimeValue Decimal @default(0)
+  cac           Decimal @default(0) // Customer Acquisition Cost
+
+  // Relations
+  users           TenantUser[]
+  membershipPlans MembershipPlan[]
+  classes         Class[]
+  bookings        Booking[] 
+  usageRecords    UsageRecord[]
+  financials      FinancialSnapshot[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// ENTERPRISE BILLING MODELS
+// -----------------------------------------------------------------------------
+
+model Plan {
+  id            String   @id @default(cuid())
+  key           String   @unique // "STARTER", "GROWTH", "PRO"
+  name          String
+  description   String?
+  
+  // Stripe Data
+  stripeProductId String? // Nullable for seed/dev
+  stripePriceId   String? // Nullable for seed/dev
+  
+  // Limits & Entitlements
+  maxMembers       Int     @default(50)
+  maxClassesPerWeek Int    @default(50)
+  platformFeePercent Decimal @default(1.0) // 1%
+  
+  // Feature Flags (JSON)
+  features         String  @default("[]")
+
+  tenants       Tenant[]
+  tenantSubscriptions TenantSubscription[]
+  createdAt     DateTime @default(now())
+}
+
+model TenantSubscription {
+  id            String   @id @default(cuid())
+  tenantId      String   @unique
+  planId        String
+  stripeSubscriptionId String? @unique // Nullable for manual/free plans
+  status        String   @default("active") // "active", "past_due", "canceled", "trialing"
+  
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime @default(now())
+  
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan          Plan     @relation(fields: [planId], references: [id])
+}
+
+model UsageRecord {
+  id            String   @id @default(cuid())
+  tenantId      String
+  metric        String   // "whatsapp_msg", "sms_sent"
+  quantity      Int
+  stripeEventId String?  // Idempotency key
+  timestamp     DateTime @default(now())
+  
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId, metric, timestamp])
+}
+
+model FinancialSnapshot {
+  id            String   @id @default(cuid())
+  tenantId      String
+  month         DateTime // YYYY-MM-01
+  
+  mrr           Decimal  // Monthly Recurring Revenue for this month
+  usageFees     Decimal  // Overage fees
+  platformFees  Decimal  // Collected via Connect
+  
+  churned       Boolean  @default(false)
+  
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, month])
+}
+
+// Enums removed for SQLite compatibility
+
+model TenantUser {
+  id        String     @id @default(cuid())
+  userId    String
+  tenantId  String
+  role      String @default("MEMBER")
+  
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // For Instructors: Classes they teach
+  classesTaught Class[]
+
+  joinedAt  DateTime   @default(now())
+
+  @@unique([userId, tenantId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  action    String   // "MEMBER_DELETE", "ROLE_UPDATE"
+  resource  String   // "TenantUser:123"
+  metadata  String?  // JSON diff or details
+  ip        String?
+  userAgent String?
+  
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// -----------------------------------------------------------------------------
+// GYM OPERATION MODELS
+// -----------------------------------------------------------------------------
+
+model MembershipPlan {
+  id            String   @id @default(cuid())
+  tenantId      String
+  name          String
+  description   String?
+  price         Decimal
+  interval      String   // "month", "year"
+  stripePriceId String?
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  tenantId         String
+  userId           String   // The Member
+  planId           String
+  status           String @default("ACTIVE")
+  currentPeriodEnd DateTime?
+  stripeSubscriptionId String?
+
+  plan             MembershipPlan @relation(fields: [planId], references: [id])
+  
+  // Note: We link to Global User? Or TenantUser? 
+  // Usually Subscription is tied to a User entity.
+  // But strictly speaking, it belongs to a member of a tenant.
+  // We'll link to User for simplicity in Auth, but validation must ensure User has TenantUser record.
+  // Actually, easiest to just store userId and filter by tenantId.
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Class {
+  id            String   @id @default(cuid())
+  tenantId      String
+  name          String
+  description   String?
+  capacity      Int      @default(10)
+  duration      Int      // in minutes
+  
+  instructorId  String?
+  instructor    TenantUser? @relation(fields: [instructorId], references: [id])
+  
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions      ClassSession[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+
+
+model ClassSession {
+  id        String      @id @default(cuid())
+  classId   String
+  startTime DateTime
+  endTime   DateTime
+  status    String @default("SCHEDULED")
+  
+  class     Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+}
+
+
+
+model Booking {
+  id        String        @id @default(cuid())
+  tenantId  String        // Denormalized for efficient RLS / querying
+  sessionId String
+  userId    String        // The Member
+  status    String @default("CONFIRMED")
+  
+  session   ClassSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attendance Attendance?
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+
+
+model Attendance {
+  id        String           @id @default(cuid())
+  bookingId String           @unique
+  status    String @default("PRESENT")
+  checkInTime DateTime     @default(now())
+
+  booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model WebhookEvent {
+  id        String   @id // Stripe Event ID (evt_...)
+  type      String   // checkout.session.completed, etc.
+  status    String   // "processing", "completed", "failed"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,51 @@
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import { MemberSidebar } from "@/components/dashboard/MemberSidebar";
+import { Header } from "@/components/dashboard/Header";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { SubscriptionGate } from "@/components/dashboard/SubscriptionGate";
+
+export default async function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const session = await auth();
+    if (!session?.user?.id) redirect("/login");
+
+    // Check user's role in their first tenant context
+    const tenantUser = await prisma.tenantUser.findFirst({
+        where: { userId: session.user.id },
+        include: {
+            tenant: {
+                include: { tenantSubscription: true }
+            }
+        }
+    });
+
+    const isOwnerOrAdmin = tenantUser?.role === 'OWNER' || tenantUser?.role === 'ADMIN';
+    const subscriptionStatus = tenantUser?.tenant?.tenantSubscription?.status || 'trialing';
+
+    // If owner, enforce gate. Members might have different rules (gym pays, not them).
+    // Usually if Gym is canceled, Members should also be blocked or see a message.
+    // For now, let's gate everyone if the Gym is down.
+
+    return (
+        <div className="flex h-screen bg-gray-50">
+            {/* Sidebar hidden on mobile, block on md+ */}
+            <div className="hidden md:block fixed inset-y-0 z-50">
+                {isOwnerOrAdmin ? <Sidebar /> : <MemberSidebar />}
+            </div>
+
+            <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300">
+                <Header />
+                <main className="flex-1 overflow-y-auto p-6">
+                    <SubscriptionGate status={subscriptionStatus}>
+                        {children}
+                    </SubscriptionGate>
+                </main>
+            </div>
+        </div>
+    );
+}
