@@ -9,17 +9,15 @@ export default auth(async (req) => {
     const url = req.nextUrl;
     const hostname = req.headers.get("host") || "";
 
-    // Define allowed domains (localhost and main domain)
-    const allowedDomains = ["localhost:3000", "gymnexus.com"];
-    // In production, you'd use env var for base domain
+    // Root domain from environment — set NEXT_PUBLIC_ROOT_DOMAIN in Vercel dashboard.
+    // e.g. "gymnexus.com" for production, "localhost:3000" for local dev.
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 
-    // Check if we are on a subdomain
-    const isSubdomain = !allowedDomains.some(d => hostname.includes(d) && (hostname.split('.').length === d.split('.').length));
-    // Simple check: if hostname is "goldgym.localhost:3000", it has more parts? 
-    // Better: Extract subdomain.
-
-    // Let's assume basic logic: if hostname is NOT the main domain, it's a tenant.
-    // For localhost, we might use "gym.localhost:3000".
+    // A request is a subdomain request if the hostname is NOT the root domain
+    // and NOT a Vercel preview URL (*.vercel.app).
+    const isVercelPreview = hostname.endsWith(".vercel.app");
+    const isRootDomain = hostname === rootDomain || hostname === `www.${rootDomain}`;
+    const isSubdomain = !isRootDomain && !isVercelPreview && hostname.includes(".");
 
     const searchParams = req.nextUrl.searchParams.toString();
     const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;

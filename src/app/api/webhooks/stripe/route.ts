@@ -83,6 +83,7 @@ export async function POST(req: Request) {
 
         if (event.type === "invoice.payment_succeeded") {
             const subscriptionId = session.subscription as string;
+            const stripe = getStripe();
             const subscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
 
             await prisma.tenantSubscription.update({

@@ -13,10 +13,11 @@ export async function GET(req: Request) {
     }
 
     try {
-        // 2. Fetch all active tenants
-        // In a large system, we would paginate or use a queue.
+        // 2. Fetch active tenants — paginated to 500 to prevent OOM on large deployments
         const tenants = await prisma.tenant.findMany({
-            select: { id: true }
+            select: { id: true },
+            take: 500,
+            orderBy: { createdAt: 'asc' },
         });
 
         console.log(`[Snapshot] Starting analytics generation for ${tenants.length} tenants.`);

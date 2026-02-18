@@ -16,13 +16,19 @@ export const getStripe = () => {
     return stripeInstance;
 };
 
+// Price IDs loaded from environment variables.
+// Set these in your Vercel dashboard and .env.local:
+//   STRIPE_PRICE_STARTER=price_xxx
+//   STRIPE_PRICE_GROWTH=price_xxx
+//   STRIPE_PRICE_METERED_SMS=price_xxx
+//   STRIPE_PRICE_METERED_WHATSAPP=price_xxx
 export const PLANS = {
-    starter: "price_1Q...", // Replace with real Price ID
-    growth: "price_1Q...",  // Replace with real Price ID
+    starter: process.env.STRIPE_PRICE_STARTER ?? "",
+    growth: process.env.STRIPE_PRICE_GROWTH ?? "",
 };
 
 // Metered Items to add to every subscription
 export const METERED_ITEMS = {
-    sms: "price_metered_sms_...",      // Replace with real Metered Price ID for SMS
-    whatsapp: "price_metered_wa_...", // Replace with real Metered Price ID for WhatsApp
+    sms: process.env.STRIPE_PRICE_METERED_SMS ?? "",
+    whatsapp: process.env.STRIPE_PRICE_METERED_WHATSAPP ?? "",
 };

@@ -6,9 +6,7 @@ import Stripe from "stripe";
 
 export const dynamic = 'force-dynamic';
 
-// Map internal metrics to Stripe Price Lookup Keys or Product Names
-// In a real app, you might query Products to find the one matching the metric.
-// For this MVC, we'll assume the Stripe Price Lookup Key matches the metric name.
+// Map internal metrics to Stripe Price Lookup Keys
 const METRIC_TO_PRICE_KEY: Record<string, string> = {
     "sms_sent": "metered_sms",
     "whatsapp_msg": "metered_whatsapp",
@@ -23,11 +21,12 @@ export async function GET(req: Request) {
     }
 
     try {
-        // 2. Fetch Aggregated Unsynced Usage
-        // We group by tenant and metric to minimize API calls
+        // 2. Fetch Aggregated Unsynced Usage — paginated to 500 records to prevent OOM
         const unsyncedRecords = await prisma.usageRecord.findMany({
             where: { stripeEventId: null },
-            include: { tenant: { include: { tenantSubscription: true } } }
+            include: { tenant: { include: { tenantSubscription: true } } },
+            take: 500,
+            orderBy: { timestamp: 'asc' },
         });
 
         if (unsyncedRecords.length === 0) {
@@ -40,7 +39,7 @@ export async function GET(req: Request) {
         const recordIds: string[] = [];
 
         for (const record of unsyncedRecords) {
-            if (!record.tenant.tenantSubscription?.stripeSubscriptionId) continue; // Skip if no stripe sub
+            if (!record.tenant.tenantSubscription?.stripeSubscriptionId) continue;
 
             if (!usageMap.has(record.tenantId)) {
                 usageMap.set(record.tenantId, new Map());
@@ -55,40 +54,34 @@ export async function GET(req: Request) {
 
         const results = [];
 
-        // 3. Sync to Stripe
+        // 3. Initialize Stripe once — outside the loop
+        const stripe = getStripe();
+
+        // 4. Cache subscription items per subscriptionId to avoid N+1 Stripe API calls
+        const subscriptionItemsCache = new Map<string, Stripe.SubscriptionItem[]>();
+
+        // 5. Sync to Stripe
         for (const [tenantId, metrics] of usageMap.entries()) {
             const tenant = tenantMap.get(tenantId)!;
             const subscriptionId = tenant.tenantSubscription!.stripeSubscriptionId!;
 
-            // Retrieve Subscription Items to find the right one to report to
-            const stripe = getStripe();
-            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            // Retrieve subscription items — use cache to avoid duplicate API calls per tenant
+            if (!subscriptionItemsCache.has(subscriptionId)) {
+                const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+                subscriptionItemsCache.set(subscriptionId, subscription.items.data);
+            }
+
+            const items = subscriptionItemsCache.get(subscriptionId)!;
 
             for (const [metric, totalQuantity] of metrics.entries()) {
-                // Find matching subscription item
-                // We rely on the Price's Lookup Key or a helper logic
-                // Simple Match: Look for item with price that has metadata `metric: <metric_name>`
-                // Or simplified: Use the lookup key logic if we set it.
-
-                // Let's try to match by nickname or assume we can find it.
-                // For this MVP, let's assume one metered item exists or we warn.
-
-                // Better: Iterate items, fetch price details if needed, match METRIC_TO_PRICE_KEY
-                // This is N+1 if we fetch price details. 
-                // Optimization: Store map of { metric: subscriptionItemId } in DB or Cache.
-                // Fallback: Just look for a textual match in price nickname/product name for now?
-
                 let targetItemId: string | undefined;
 
-                for (const item of subscription.items.data) {
+                for (const item of items) {
                     const price = item.price;
-                    // Check lookup key (if we set it in seed)
                     if (price.lookup_key === METRIC_TO_PRICE_KEY[metric]) {
                         targetItemId = item.id;
                         break;
                     }
-                    // Fallback: Check product metadata (would require expanding product)
-                    // Fallback: Check nickname
                     if (price.nickname?.toLowerCase().includes(metric.split('_')[0])) {
                         targetItemId = item.id;
                         break;
@@ -97,8 +90,6 @@ export async function GET(req: Request) {
 
                 if (targetItemId) {
                     try {
-                        // Create Usage Record in Stripe
-                        // Cast to any to avoid type error if method is missing in d.ts
                         await (stripe.subscriptionItems as any).createUsageRecord(
                             targetItemId,
                             {
@@ -120,16 +111,19 @@ export async function GET(req: Request) {
             }
         }
 
-        // 4. Mark Records as Synced
-        // We only mark the ones we processed successfully (or skipped). 
-        // For simplicity in MVP, we mark all we picked up so we don't retry forever on a config error.
-        // In prod, be more selective.
+        // 6. Mark Records as Synced
         await prisma.usageRecord.updateMany({
             where: { id: { in: recordIds } },
             data: { stripeEventId: "synced_" + Date.now() }
         });
 
-        return NextResponse.json({ success: true, results });
+        return NextResponse.json({
+            success: true,
+            results,
+            note: unsyncedRecords.length === 500
+                ? "Batch limit reached — re-run to process remaining records."
+                : undefined,
+        });
 
     } catch (error: any) {
         console.error("Usage Sync Cron Failed:", error);

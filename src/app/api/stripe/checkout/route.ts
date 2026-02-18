@@ -1,8 +1,10 @@
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PLANS, METERED_ITEMS } from "@/lib/stripe";
+import { getStripe, PLANS, METERED_ITEMS } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = 'force-dynamic';
 
 // PLANS are now imported from @/lib/stripe
 
@@ -20,19 +22,6 @@ export async function GET(req: Request) {
         return new NextResponse("Invalid plan", { status: 400 });
     }
 
-    // Check if user already has a tenant (or pass tenantId if supporting multiple)
-    // For this flow, we assume the user is buying a subscription for their *first* tenant or a specific one.
-    // Ideally, we pass ?tenantId=...
-
-    // Implementation choice: 
-    // 1. If user has no tenant, redirect to onboarding? 
-    // 2. OR Create tenant AFTER payment? (Complex)
-    // 3. BEST: User creates Tenant (Onboarding), THEN goes to Billing -> Subscribe.
-
-    // Let's assume we are upgrading a specific Tenant.
-    // We need the tenantId.
-    // For now, let's find the First Tenant the user owns.
-
     const tenantUser = await prisma.tenantUser.findFirst({
         where: {
             userId: session.user.id,
@@ -44,13 +33,13 @@ export async function GET(req: Request) {
     });
 
     if (!tenantUser) {
-        // User has no gym yet.
         return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
     const tenant = tenantUser.tenant;
 
     try {
+        const stripe = getStripe();
         const checkoutSession = await stripe.checkout.sessions.create({
             mode: "subscription",
             payment_method_types: ["card"],

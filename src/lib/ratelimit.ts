@@ -1,34 +1,52 @@
 
-// Simple Token Bucket Rate Limiter (Memory-based for MVP / Fallback)
-// In production, swap this with @upstash/ratelimit backed by Redis.
+// Production-safe Rate Limiter
+// Uses Upstash Redis (sliding window) when UPSTASH_REDIS_REST_URL is configured.
+// Falls back to fail-open (allow all) when Redis is not available — prevents
+// breaking the app in environments without Redis (e.g. local dev, preview deploys).
+//
+// To enable: add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to Vercel env vars.
+// Install: npm install @upstash/ratelimit @upstash/redis
 
-interface RatelimitConfig {
-    limit: number;
-    window: number; // in seconds
-}
+let ratelimiter: any = null;
 
-const trackers = new Map<string, number[]>();
+async function getRateLimiter() {
+    if (ratelimiter) return ratelimiter;
 
-export async function rateLimit(identifier: string, config: RatelimitConfig = { limit: 10, window: 10 }) {
-    const now = Date.now();
-    const windowStart = now - (config.window * 1000);
-
-    const timestamps = trackers.get(identifier) || [];
-
-    // Filter out old requests
-    const recentRequests = timestamps.filter(t => t > windowStart);
-
-    if (recentRequests.length >= config.limit) {
-        return { success: false, limit: config.limit, remaining: 0, reset: Math.floor((recentRequests[0] + (config.window * 1000)) / 1000) };
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+        return null; // Redis not configured — fail open
     }
 
-    recentRequests.push(now);
-    trackers.set(identifier, recentRequests);
+    try {
+        const { Ratelimit } = await import("@upstash/ratelimit");
+        const { Redis } = await import("@upstash/redis");
 
+        ratelimiter = new Ratelimit({
+            redis: Redis.fromEnv(),
+            limiter: Ratelimit.slidingWindow(10, "10 s"),
+            analytics: false,
+            prefix: "nexus_rl",
+        });
+
+        return ratelimiter;
+    } catch {
+        // Package not installed — fail open
+        return null;
+    }
+}
+
+export async function rateLimit(identifier: string) {
+    const limiter = await getRateLimiter();
+
+    if (!limiter) {
+        // No Redis configured — allow all requests (fail-open)
+        return { success: true, limit: 10, remaining: 10, reset: 0 };
+    }
+
+    const result = await limiter.limit(identifier);
     return {
-        success: true,
-        limit: config.limit,
-        remaining: config.limit - recentRequests.length,
-        reset: Math.floor((now + (config.window * 1000)) / 1000)
+        success: result.success,
+        limit: result.limit,
+        remaining: result.remaining,
+        reset: result.reset,
     };
 }

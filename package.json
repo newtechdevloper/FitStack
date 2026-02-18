@@ -14,14 +14,14 @@
     "@prisma/client": "5.22.0",
     "@sentry/nextjs": "^10.39.0",
     "@stripe/stripe-js": "^8.7.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.2",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
-    "dotenv": "^17.3.1",
     "lucide-react": "^0.574.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "pg": "^8.18.0",
-    "prisma": "5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.9.2",
@@ -37,11 +37,16 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "prisma": "5.22.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "overrides": {
     "glob": "^13.0.0"
