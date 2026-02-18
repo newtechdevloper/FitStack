@@ -45,7 +45,7 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   },
   "overrides": {
     "glob": "^13.0.0"
