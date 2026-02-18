@@ -16,11 +16,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         Credentials({
             async authorize(credentials) {
                 const parsedCredentials = z
-                    .object({ email: z.string().email(), password: z.string().min(6) })
+                    .object({ email: z.string().email(), password: z.string().min(1) })
                     .safeParse(credentials);
 
                 if (parsedCredentials.success) {
                     const { email, password } = parsedCredentials.data;
+
+                    // 1. Check for Temp/Env User (Bypass DB)
+                    if (process.env.TEMP_USER_EMAIL &&
+                        process.env.TEMP_USER_PASSWORD &&
+                        email === process.env.TEMP_USER_EMAIL &&
+                        password === process.env.TEMP_USER_PASSWORD) {
+                        return {
+                            id: "temp-admin-user",
+                            name: "Temp Admin",
+                            email: email,
+                            globalRole: "SUPER_ADMIN",
+                            image: "",
+                        };
+                    }
+
+                    // 2. Check Database User
                     const user = await prisma.user.findUnique({ where: { email } });
 
                     if (!user || !user.password) return null;
