@@ -15,17 +15,36 @@ export default async function DashboardLayout({
     if (!session?.user?.id) redirect("/login");
 
     // Check user's role in their first tenant context
-    const tenantUser = await prisma.tenantUser.findFirst({
-        where: { userId: session.user.id },
-        include: {
-            tenant: {
-                include: { tenantSubscription: true }
-            }
-        }
-    });
+    let isOwnerOrAdmin = false;
+    let subscriptionStatus = 'trialing';
 
-    const isOwnerOrAdmin = tenantUser?.role === 'OWNER' || tenantUser?.role === 'ADMIN';
-    const subscriptionStatus = tenantUser?.tenant?.tenantSubscription?.status || 'trialing';
+    // 1. Handle Temp Admin (Bypass DB)
+    if (session.user.id === 'temp-admin-user' || (session.user as any).globalRole === 'SUPER_ADMIN') {
+        isOwnerOrAdmin = true;
+        subscriptionStatus = 'active';
+    }
+    // 2. Handle Real User with DB
+    else {
+        try {
+            const tenantUser = await prisma.tenantUser.findFirst({
+                where: { userId: session.user.id },
+                include: {
+                    tenant: {
+                        include: { tenantSubscription: true }
+                    }
+                }
+            });
+
+            if (tenantUser) {
+                isOwnerOrAdmin = tenantUser?.role === 'OWNER' || tenantUser?.role === 'ADMIN';
+                subscriptionStatus = tenantUser?.tenant?.tenantSubscription?.status || 'trialing';
+            }
+        } catch (error) {
+            console.error("Dashboard Layout DB Error:", error);
+            // If DB is down, we show Member View (safe fallback) or Error UI.
+            // We swallow the error to prevent 500 Page Crash
+        }
+    }
 
     // If owner, enforce gate. Members might have different rules (gym pays, not them).
     // Usually if Gym is canceled, Members should also be blocked or see a message.
