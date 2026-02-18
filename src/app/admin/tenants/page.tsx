@@ -1,146 +1,199 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { Plus, Search, Filter, Download } from "lucide-react";
-import { TenantActions } from "./tenant-actions";
+import { Metadata } from 'next';
+import {
+    Building2, Users, CreditCard, ExternalLink, Shield, Trash2,
+    PauseCircle, PlayCircle, Clock, ArrowUpRight, Search, Filter,
+    MoreVertical, Crown, AlertTriangle, CheckCircle, XCircle
+} from "lucide-react";
+import { deleteTenantAdmin, suspendTenant, reactivateTenant, extendTrial } from "../actions";
 
-export default async function AdminTenantsPage() {
-    const tenants = await prisma.tenant.findMany({
-        orderBy: { createdAt: 'desc' },
+export const metadata: Metadata = { title: 'Tenants | Super Admin' };
+
+async function getTenants() {
+    return prisma.tenant.findMany({
         include: {
-            tenantSubscription: true,
             plan: true,
-            _count: {
-                select: { users: true }
-            }
-        }
+            tenantSubscription: true,
+            _count: { select: { users: true, classes: true, bookings: true } }
+        },
+        orderBy: { createdAt: 'desc' }
     });
+}
+
+export default async function TenantsPage() {
+    const tenants = await getTenants();
+    const plans = await prisma.plan.findMany();
+
+    const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+        active: { label: 'Active', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20', icon: CheckCircle },
+        trialing: { label: 'Trialing', color: 'text-amber-400 bg-amber-400/10 border-amber-400/20', icon: Clock },
+        canceled: { label: 'Suspended', color: 'text-red-400 bg-red-400/10 border-red-400/20', icon: XCircle },
+        past_due: { label: 'Past Due', color: 'text-orange-400 bg-orange-400/10 border-orange-400/20', icon: AlertTriangle },
+    };
 
     return (
         <div className="space-y-8">
-            {/* Header & Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
-                        Tenants Management
-                    </h1>
-                    <p className="text-zinc-400 mt-2">
-                        Manage all registered gyms and their subscription status.
+                    <h1 className="text-3xl font-bold text-white">Tenant Management</h1>
+                    <p className="text-zinc-400 mt-1 text-sm">
+                        Full control over all {tenants.length} registered gyms.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">
-                        <Download className="h-4 w-4" />
-                        Export
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
-                        <Plus className="h-4 w-4" />
-                        Create Gym
-                    </button>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-zinc-500 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
+                        {tenants.filter(t => t.tenantSubscription?.status === 'active').length} Active
+                    </span>
+                    <span className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+                        {tenants.filter(t => t.tenantSubscription?.status === 'canceled').length} Suspended
+                    </span>
                 </div>
             </div>
 
-            {/* Filters Section */}
-            <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                    <input
-                        type="text"
-                        placeholder="Search gyms by name or slug..."
-                        className="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
-                        <Filter className="h-4 w-4" />
-                        Status
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
-                        <Filter className="h-4 w-4" />
-                        Plan
-                    </button>
-                </div>
+            {/* Stats Row */}
+            <div className="grid grid-cols-4 gap-4">
+                {[
+                    { label: "Total Gyms", value: tenants.length, color: "text-violet-400", bg: "bg-violet-400/10 border-violet-400/20" },
+                    { label: "Total Members", value: tenants.reduce((a, t) => a + t._count.users, 0).toLocaleString(), color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
+                    { label: "Total Classes", value: tenants.reduce((a, t) => a + t._count.classes, 0).toLocaleString(), color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20" },
+                    { label: "Total Bookings", value: tenants.reduce((a, t) => a + t._count.bookings, 0).toLocaleString(), color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+                ].map((s, i) => (
+                    <div key={i} className={`rounded-xl border p-4 ${s.bg}`}>
+                        <p className="text-xs text-zinc-500 uppercase tracking-wider">{s.label}</p>
+                        <p className={`mt-1 text-2xl font-bold ${s.color}`}>{s.value}</p>
+                    </div>
+                ))}
             </div>
 
-            {/* Tenants Table */}
+            {/* Tenant Table */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md overflow-hidden">
+                <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-zinc-400" />
+                        All Gyms
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <Filter className="h-3.5 w-3.5" />
+                        <span>Showing all</span>
+                    </div>
+                </div>
+
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-zinc-800">
-                        <thead className="bg-zinc-950/50">
+                    <table className="w-full text-sm">
+                        <thead className="bg-zinc-900/80">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Gym Name</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Plan</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Users</th>
-                                <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">Actions</th>
+                                {['Gym', 'Plan', 'Members', 'Status', 'Created', 'Actions'].map(h => (
+                                    <th key={h} className="text-left text-xs font-medium text-zinc-500 px-6 py-3 uppercase tracking-wider">{h}</th>
+                                ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-800">
+                        <tbody className="divide-y divide-zinc-800/30">
                             {tenants.map((tenant) => {
                                 const status = tenant.tenantSubscription?.status || 'trialing';
+                                const cfg = statusConfig[status] || statusConfig.trialing;
+                                const isSuspended = status === 'canceled';
+
                                 return (
-                                    <tr key={tenant.id} className="hover:bg-zinc-800/30 transition-colors group">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold">
+                                    <tr key={tenant.id} className={`hover:bg-zinc-800/30 transition-colors group ${isSuspended ? 'opacity-60' : ''}`}>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center text-violet-300 font-bold text-sm border border-violet-500/20 flex-shrink-0">
                                                     {tenant.name.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <div className="text-sm font-medium text-white group-hover:text-indigo-400 transition-colors">
-                                                        {tenant.name}
-                                                    </div>
-                                                    <div className="text-xs text-zinc-500">
+                                                    <p className="font-semibold text-white text-sm">{tenant.name}</p>
+                                                    <a
+                                                        href={`https://${tenant.slug}.gymnexus.com`}
+                                                        target="_blank"
+                                                        className="text-xs text-zinc-500 hover:text-violet-400 transition-colors flex items-center gap-1"
+                                                    >
                                                         {tenant.slug}.gymnexus.com
-                                                    </div>
+                                                        <ExternalLink className="h-2.5 w-2.5" />
+                                                    </a>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 capitalize">
-                                                {tenant.plan?.key || 'None'}
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-1.5">
+                                                {tenant.plan?.key === 'PRO' && <Crown className="h-3.5 w-3.5 text-amber-400" />}
+                                                <span className="text-zinc-300 text-sm">{tenant.plan?.name || 'No Plan'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-1.5 text-zinc-400">
+                                                <Users className="h-3.5 w-3.5" />
+                                                <span className="text-sm">{tenant._count.users}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border ${cfg.color}`}>
+                                                <cfg.icon className="h-3 w-3" />
+                                                {cfg.label}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${status === 'active'
-                                                ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
-                                                : 'bg-amber-400/10 text-amber-400 border-amber-400/20'
-                                                }`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full mr-2 ${status === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                                                {status.toUpperCase()}
-                                            </span>
+                                        <td className="px-6 py-4 text-zinc-500 text-xs">
+                                            {new Date(tenant.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
-                                            {tenant._count.users} members
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <TenantActions tenantId={tenant.id} isSuspended={status === 'canceled'} />
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {/* Impersonate */}
+                                                <a
+                                                    href={`/admin/impersonate?tenantId=${tenant.id}`}
+                                                    className="rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400 hover:bg-violet-500/20 transition-colors px-2.5 py-1.5 text-xs font-medium flex items-center gap-1"
+                                                    title="Impersonate"
+                                                >
+                                                    <Shield className="h-3 w-3" />
+                                                    Login As
+                                                </a>
+
+                                                {/* Suspend / Reactivate */}
+                                                {isSuspended ? (
+                                                    <form action={reactivateTenant.bind(null, tenant.id)}>
+                                                        <button type="submit" className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors px-2.5 py-1.5 text-xs font-medium flex items-center gap-1">
+                                                            <PlayCircle className="h-3 w-3" /> Reactivate
+                                                        </button>
+                                                    </form>
+                                                ) : (
+                                                    <form action={suspendTenant.bind(null, tenant.id)}>
+                                                        <button type="submit" className="rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-colors px-2.5 py-1.5 text-xs font-medium flex items-center gap-1">
+                                                            <PauseCircle className="h-3 w-3" /> Suspend
+                                                        </button>
+                                                    </form>
+                                                )}
+
+                                                {/* Extend Trial */}
+                                                <form action={extendTrial.bind(null, tenant.id, 30)}>
+                                                    <button type="submit" className="rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors px-2.5 py-1.5 text-xs font-medium flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" /> +30d
+                                                    </button>
+                                                </form>
+
+                                                {/* Delete */}
+                                                <form action={deleteTenantAdmin.bind(null, tenant.id)}>
+                                                    <button
+                                                        type="submit"
+                                                        className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors px-2.5 py-1.5 text-xs font-medium flex items-center gap-1"
+                                                        onClick={(e) => { if (!confirm(`Delete ${tenant.name}? This is irreversible.`)) e.preventDefault(); }}
+                                                    >
+                                                        <Trash2 className="h-3 w-3" /> Delete
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
-                                )
+                                );
                             })}
                             {tenants.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
-                                        <div className="flex flex-col items-center justify-center">
-                                            <div className="h-12 w-12 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
-                                                <Search className="h-6 w-6 text-zinc-700" />
-                                            </div>
-                                            <p>No tenants found</p>
-                                        </div>
+                                    <td colSpan={6} className="px-6 py-16 text-center">
+                                        <Building2 className="h-10 w-10 text-zinc-700 mx-auto mb-3" />
+                                        <p className="text-zinc-500 text-sm">No gyms registered yet.</p>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-                </div>
-                {/* Pagination (Visual Only) */}
-                <div className="bg-zinc-950/50 px-6 py-4 border-t border-zinc-800 flex items-center justify-between">
-                    <div className="text-xs text-zinc-500">
-                        Showing <span className="font-medium text-white">1</span> to <span className="font-medium text-white">{tenants.length}</span> of <span className="font-medium text-white">{tenants.length}</span> results
-                    </div>
-                    <div className="flex gap-2">
-                        <button disabled className="px-3 py-1 rounded-lg border border-zinc-800 text-xs font-medium text-zinc-500 disabled:opacity-50">Previous</button>
-                        <button disabled className="px-3 py-1 rounded-lg border border-zinc-800 text-xs font-medium text-zinc-500 disabled:opacity-50">Next</button>
-                    </div>
                 </div>
             </div>
         </div>
