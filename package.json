@@ -43,7 +43,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "glob": "^11.0.1"
+    "glob": "^13.0.0"
   },
   "prisma": {
     "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
