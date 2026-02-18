@@ -3,10 +3,11 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { redirect } from "next/navigation";
 
 export async function createStripeConnectAccount() {
+    const stripe = getStripe();
     const session = await auth();
     if (!session?.user?.id) {
         throw new Error("Unauthorized");

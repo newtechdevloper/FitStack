@@ -1,10 +1,20 @@
 
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-11-20.acacia' as any, // Updated to a known stable version or match package.json
-    typescript: true,
-});
+let stripeInstance: Stripe;
+
+export const getStripe = () => {
+    if (!stripeInstance) {
+        if (!process.env.STRIPE_SECRET_KEY) {
+            throw new Error("STRIPE_SECRET_KEY is missing. Cannot initialize Stripe.");
+        }
+        stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+            apiVersion: '2024-11-20.acacia' as any,
+            typescript: true,
+        });
+    }
+    return stripeInstance;
+};
 
 export const PLANS = {
     starter: "price_1Q...", // Replace with real Price ID

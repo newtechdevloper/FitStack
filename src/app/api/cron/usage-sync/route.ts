@@ -1,8 +1,10 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
+
+export const dynamic = 'force-dynamic';
 
 // Map internal metrics to Stripe Price Lookup Keys or Product Names
 // In a real app, you might query Products to find the one matching the metric.
@@ -59,6 +61,7 @@ export async function GET(req: Request) {
             const subscriptionId = tenant.tenantSubscription!.stripeSubscriptionId!;
 
             // Retrieve Subscription Items to find the right one to report to
+            const stripe = getStripe();
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
             for (const [metric, totalQuantity] of metrics.entries()) {

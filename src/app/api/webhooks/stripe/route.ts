@@ -1,7 +1,7 @@
 
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     let event: Stripe.Event;
 
     try {
+        const stripe = getStripe();
         event = stripe.webhooks.constructEvent(
             body,
             signature,
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
             }
 
             // Retrieve the subscription details from Stripe
+            const stripe = getStripe();
             const subscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
             const planKey = session.metadata?.planKey;
 
