@@ -16,7 +16,6 @@ export async function addMember(formData: FormData) {
     // 1. Get Current Tenant
     const currentUser = await prisma.tenantUser.findFirst({
         where: { userId: session.user.id },
-        where: { userId: session.user.id },
         select: { tenantId: true, role: true, tenant: { select: { name: true, slug: true } } }
     });
 
