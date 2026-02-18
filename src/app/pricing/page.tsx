@@ -6,8 +6,8 @@ const tiers = [
     {
         name: "Starter",
         id: "tier-starter",
-        href: "/api/stripe/checkout?plan=starter",
-        priceMonthly: "$29",
+        href: "/signup?plan=starter",
+        priceMonthly: "₹2,499",
         description: "Essential tools for bold new gyms.",
         features: [
             "Up to 100 active members",
@@ -20,8 +20,8 @@ const tiers = [
     {
         name: "Growth",
         id: "tier-growth",
-        href: "/api/stripe/checkout?plan=growth",
-        priceMonthly: "$79",
+        href: "/signup?plan=growth",
+        priceMonthly: "₹6,499",
         description: "For growing gyms that need more power.",
         features: [
             "Unlimited members",
@@ -36,7 +36,7 @@ const tiers = [
         name: "Pro",
         id: "tier-pro",
         href: "/contact", // Sales contact for enterprise
-        priceMonthly: "$199",
+        priceMonthly: "Custom",
         description: "Maximum performance for multi-location gyms.",
         features: [
             "Multi-location support",
