@@ -27,7 +27,7 @@ export default async function BillingPage({
 
     if (!tenantUser) return <div>Gym not found.</div>;
 
-    const tenant = tenantUser.tenant;
+    const tenant = tenantUser.tenant as any;
     const isConnected = !!tenant.razorpayAccountId;
     const resolvedSearchParams = await searchParams;
     const isSuccess = resolvedSearchParams['connect'] === 'success';
@@ -70,7 +70,11 @@ export default async function BillingPage({
                     <div className="p-8">
                         <div className="flex items-baseline gap-2 mb-6">
                             <span className="text-4xl font-extrabold text-gray-900">
-                                {tenant.plan?.price ? `$${tenant.plan.price / 100}` : 'Free'}
+                                {/* Hardcoded pricing map since Plan model lacks price field */}
+                                {tenant.plan?.key === 'STARTER' ? '$29' :
+                                    tenant.plan?.key === 'GROWTH' ? '$79' :
+                                        tenant.plan?.key === 'PRO' ? '$199' :
+                                            '$0'}
                             </span>
                             <span className="text-gray-500 font-medium">/month</span>
                         </div>
