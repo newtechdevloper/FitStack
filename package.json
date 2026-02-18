@@ -46,9 +46,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5"
   },
-  "engines": {
-    "node": "20.x"
-  },
   "overrides": {
     "glob": "^13.0.0"
   },
