@@ -10,7 +10,8 @@ import {
     CreditCard,
     Settings,
     LogOut,
-    Building2
+    Building2,
+    BarChart3
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { clsx } from "clsx";
@@ -20,6 +21,7 @@ const navigation = [
     { name: "Members", href: "/dashboard/members", icon: Users },
     { name: "Schedule", href: "/dashboard/schedule", icon: Calendar },
     { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
+    { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

@@ -8,15 +8,16 @@ import {
     Settings,
     LogOut,
     Building2,
-    Ticket
+    Ticket,
+    Home
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { clsx } from "clsx";
 
 const navigation = [
-    { name: "My Bookings", href: "/dashboard/bookings", icon: Ticket },
-    { name: "Find Classes", href: "/dashboard/schedule", icon: Calendar },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings },
+    { name: "Home", href: "/portal", icon: Home },
+    { name: "My Bookings", href: "/portal/bookings", icon: Ticket },
+    { name: "Profile", href: "/portal/profile", icon: Settings },
 ];
 
 export function MemberSidebar() {
@@ -25,7 +26,7 @@ export function MemberSidebar() {
     return (
         <div className="flex h-full min-h-screen w-64 flex-col bg-gray-900 text-white">
             <div className="flex h-16 items-center px-6 border-b border-gray-800">
-                <Link href="/dashboard" className="flex items-center gap-2">
+                <Link href="/portal" className="flex items-center gap-2">
                     <Building2 className="h-6 w-6 text-indigo-500" />
                     <span className="text-lg font-bold tracking-tight">GymNexus</span>
                 </Link>
