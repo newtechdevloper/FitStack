@@ -216,6 +216,10 @@ model AuditLog {
 // GYM OPERATION MODELS
 // -----------------------------------------------------------------------------
 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model MembershipPlan {
   id            String   @id @default(cuid())
   tenantId      String
@@ -223,11 +227,29 @@ model MembershipPlan {
   description   String?
   price         Decimal
   interval      String   // "month", "year"
+  type          String   @default("INDIVIDUAL") // "INDIVIDUAL", "CORPORATE", "FAMILY"
   stripePriceId String?
+
+  allowPause    Boolean  @default(true)
+  pauseLimitDays Int     @default(60)
 
   tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   subscriptions Subscription[]
 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CorporateAccount {
+  id            String   @id @default(cuid())
+  tenantId      String
+  name          String
+  billingEmail  String
+  maxMembers    Int      @default(50)
+  
+  subscriptions Subscription[]
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -237,20 +259,75 @@ model Subscription {
   tenantId         String
   userId           String   // The Member
   planId           String
-  status           String @default("ACTIVE")
+  
+  status           String   @default("ACTIVE") // ACTIVE, PAUSED, CANCELED, PAST_DUE
   currentPeriodEnd DateTime?
   stripeSubscriptionId String?
 
+  // Pause Logic
+  pauseDate        DateTime?
+  resumeDate       DateTime?
+
+  // Corporate Billing
+  corporateAccountId String?
+  corporateAccount   CorporateAccount? @relation(fields: [corporateAccountId], references: [id])
+
   plan             MembershipPlan @relation(fields: [planId], references: [id])
-  
-  // Note: We link to Global User? Or TenantUser? 
-  // Usually Subscription is tied to a User entity.
-  // But strictly speaking, it belongs to a member of a tenant.
-  // We'll link to User for simplicity in Auth, but validation must ensure User has TenantUser record.
-  // Actually, easiest to just store userId and filter by tenantId.
+  schedules        BillingSchedule[]
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model BillingSchedule {
+  id             String   @id @default(cuid())
+  tenantId       String
+  subscriptionId String
+  dueDate        DateTime
+  amount         Decimal
+  status         String   @default("PENDING") // PENDING, PAID, FAILED, VOID
+  invoiceLink    String?
+
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Wallet {
+  id            String   @id @default(cuid())
+  tenantId      String
+  userId        String
+  balance       Decimal  @default(0)
+  
+  transactions  WalletTransaction[]
+  
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, userId])
+}
+
+model WalletTransaction {
+  id            String   @id @default(cuid())
+  walletId      String
+  amount        Decimal
+  type          String   // CREDIT, DEBIT
+  description   String?
+  referenceId   String?  // BookingID or InvoiceID
+  
+  wallet        Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+}
+
+model Outbox {
+  id        String   @id @default(cuid())
+  channel   String   // "EMAIL", "SMS", "INTERNAL"
+  event     String   // "SUBSCRIPTION_UPDATED"
+  payload   String   // JSON
+  status    String   @default("PENDING")
+  
+  createdAt DateTime @default(now())
+  processedAt DateTime?
 }
 
 model Class {
