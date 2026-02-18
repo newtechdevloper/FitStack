@@ -60,6 +60,17 @@ export async function registerTenant(prevState: TenantActionState, formData: For
             },
         });
 
+        // Enterprise Phase 1: Create Schema
+        // We import dynamically to avoid circular deps if any
+        const { SchemaManager } = await import("@/lib/schema-manager");
+        try {
+            await SchemaManager.createTenantSchema(tenant.id);
+        } catch (schemaError) {
+            console.error("Schema creation failed for tenant:", tenant.id, schemaError);
+            // Critical: Should we rollback tenant creation?
+            // For MVP, we log it. In Prod, we might queue a retry or fail the transaction.
+        }
+
         // TODO: Assign default MembershipPlan or Trial status here?
 
     } catch (error) {
@@ -69,5 +80,5 @@ export async function registerTenant(prevState: TenantActionState, formData: For
 
     // Revalidate and redirect
     revalidatePath("/dashboard");
-    redirect(`/dashboard?tenantId=${slug}`); // Or redirect to specific tenant dashboard
+    redirect(`/dashboard?tenantId=${slug}`);
 }

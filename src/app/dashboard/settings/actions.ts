@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getTenantPrisma } from "@/lib/tenant-prisma";
+
 export async function updateSettings(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
@@ -19,7 +21,22 @@ export async function updateSettings(formData: FormData) {
 
     if (!tenantUser?.tenantId) throw new Error("Unauthorized");
 
-    await prisma.tenant.update({
+    // Initialize Tenant-Scoped DB
+    const db = getTenantPrisma(tenantUser.tenantId);
+
+    // Update Tenant
+    // Note: Tenant table is global but we scope it via ID anyway for consistency?
+    // Actually, `getTenantPrisma` injects `where: { tenantId }`.
+    // Does `Tenant` model have `tenantId`? NO. It has `id`.
+    // The extension logic checks if model has `tenantId`.
+    // Wait, let's check `tenant-prisma.ts`.
+    // "List of Global Models that should NOT be scoped... Tenant"
+    // So for Tenant model, it skips injection.
+    // So we use standard prisma call or db call (it's the same).
+    // But `getTenantPrisma` returns extended client.
+    // Since `Tenant` is in exclusion list, `db.tenant` behaves like `prisma.tenant`.
+
+    await db.tenant.update({
         where: { id: tenantUser.tenantId },
         data: { name }
     });
@@ -39,7 +56,8 @@ export async function deleteTenant() {
 
     if (!tenantUser?.tenantId) throw new Error("Unauthorized: Only Owners can delete a gym.");
 
-    // 2. Delete Tenant (Cascade will handle resources due to schema update)
+    // 2. Delete Tenant (Cascade)
+    // Tenant is global model, not scoped by tenantId (it IS the scope)
     await prisma.tenant.delete({
         where: { id: tenantUser.tenantId }
     });

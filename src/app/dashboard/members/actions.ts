@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getTenantPrisma } from "@/lib/tenant-prisma";
+
 export async function addMember(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
@@ -13,61 +15,70 @@ export async function addMember(formData: FormData) {
     const email = formData.get("email") as string;
     if (!email) throw new Error("Email is required");
 
-    // 1. Get Current Tenant
+    // 1. Get Current Tenant (Legacy / Hybrid approach using Session)
+    // We trust the Session for Dashboard actions.
     const currentUser = await prisma.tenantUser.findFirst({
         where: { userId: session.user.id },
         select: { tenantId: true, role: true, tenant: { select: { name: true, slug: true } } }
     });
 
     if (!currentUser?.tenantId) throw new Error("No tenant found");
+    // Authorization Check
     if (currentUser.role !== "OWNER" && currentUser.role !== "ADMIN") {
         throw new Error("Permission denied");
     }
 
-    // 2. Find or Create User
-    // For MVP, user must exist or we create a placeholder?
-    // Let's try to find, if not, create a base user.
+    // Initialize Tenant-Scoped DB
+    const db = getTenantPrisma(currentUser.tenantId);
+
+    // 2. Find or Create User (Global Action - use global prisma)
+    // User table is global! 
+    // Wait, if we use schema isolation, User might be shared or isolated.
+    // For "Hybrid", User is global in 'public'.
     let targetUser = await prisma.user.findUnique({
         where: { email }
     });
 
     if (!targetUser) {
-        // Create a new user (Placeholder)
-        // In real app, trigger email invitation
+        // Create user globally
         targetUser = await prisma.user.create({
             data: {
                 email,
-                name: email.split("@")[0], // Placeholder name
-                // No password, they must use magic link or reset password flow
+                name: email.split("@")[0],
             }
         });
     }
 
-    // 3. Check if already member
-    const existingMember = await prisma.tenantUser.findFirst({
+    // 3. Check if already member (Use Scoped DB)
+    // db.tenantUser automatically adds WHERE tenantId = ...
+    const existingMember = await db.tenantUser.findFirst({
         where: {
-            tenantId: currentUser.tenantId,
             userId: targetUser.id
         }
     });
 
     if (existingMember) {
-        // Already a member
         return;
     }
 
-    // 4. Add to Tenant
-    await prisma.tenantUser.create({
+    // 4. Add to Tenant (Use Scoped DB)
+    // db.tenantUser.create will auto-inject tenantId if we conform to the extension specs,
+    // but the extension logic I wrote (Step 4323) handles 'create' args.data injection.
+    // Let's rely on explicit injection just to be 100% safe mixed with the extension query filter.
+    // Actually, calling db.tenantUser.create({ data: { userId, role } }) should work if extension injects tenantId.
+    // However, my extension implementation for 'create' might need verification.
+    // To be safe, I will pass tenantId explicitly too, redundant but safe.
+    await db.tenantUser.create({
         data: {
-            tenantId: currentUser.tenantId,
             userId: targetUser.id,
-            role: "MEMBER"
+            role: "MEMBER",
+            tenantId: currentUser.tenantId // Explicit + Extension will both ensure it's there
         }
     });
 
     // 5. Send Email Invitation
     const { EmailService } = await import("@/lib/email");
-    const inviteLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}`; // Just point to home for now
+    const inviteLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}`;
     await EmailService.sendInvitationEmail(email, inviteLink, currentUser.tenant.name);
 
     revalidatePath("/dashboard/members");
@@ -90,10 +101,12 @@ export async function removeMember(formData: FormData) {
         throw new Error("Permission denied");
     }
 
-    // 2. Remove
-    const targetMember = await prisma.tenantUser.findFirst({
+    // Initialize Tenant-Scoped DB
+    const db = getTenantPrisma(currentUser.tenantId);
+
+    // 2. Remove (Scoped)
+    const targetMember = await db.tenantUser.findFirst({
         where: {
-            tenantId: currentUser.tenantId,
             userId: userIdToRemove
         }
     });
@@ -103,9 +116,8 @@ export async function removeMember(formData: FormData) {
         throw new Error("Critical: Cannot remove the Workspace Owner.");
     }
 
-    await prisma.tenantUser.deleteMany({
+    await db.tenantUser.deleteMany({
         where: {
-            tenantId: currentUser.tenantId,
             userId: userIdToRemove
         }
     });
@@ -133,13 +145,12 @@ export async function updateRole(formData: FormData) {
         throw new Error("Permission denied");
     }
 
-    // 2. Update Role
-    // Prevent updating self if not OWNER? Or prevent updating OWNER role?
-    // Let's protect OWNER role from being changed by anyone. 
+    // Initialize Tenant-Scoped DB
+    const db = getTenantPrisma(currentUser.tenantId);
 
-    const targetMember = await prisma.tenantUser.findFirst({
+    // 2. Update Role (Scoped)
+    const targetMember = await db.tenantUser.findFirst({
         where: {
-            tenantId: currentUser.tenantId,
             userId: userIdToUpdate
         }
     });
@@ -147,9 +158,8 @@ export async function updateRole(formData: FormData) {
     if (!targetMember) return;
     if (targetMember.role === "OWNER") throw new Error("Cannot change Owner role");
 
-    await prisma.tenantUser.updateMany({
+    await db.tenantUser.updateMany({
         where: {
-            tenantId: currentUser.tenantId,
             userId: userIdToUpdate
         },
         data: { role: newRole as "ADMIN" | "MEMBER" }
