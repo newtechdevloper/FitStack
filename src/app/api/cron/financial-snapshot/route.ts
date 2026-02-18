@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateSnapshot } from "@/lib/analytics";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
     // 1. Auth Check (Verify Cron Secret)
     const authHeader = req.headers.get('authorization');
