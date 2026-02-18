@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-    // Get hostname (e.g., "goldgym.gymnexus.com" or "localhost:3000")
+    // Get hostname (e.g., "goldgym.FitStack.com" or "localhost:3000")
     const hostname = request.headers.get("host") || "";
 
     // Define main domain (env var or hardcoded)
-    // In dev: localhost:3000. In prod: gymnexus.com
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gymnexus.com";
+    // In dev: localhost:3000. In prod: FitStack.com
+    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "FitStack.com";
 
     // Check if we are on a subdomain
     const isSubdomain = hostname.includes(appDomain) && hostname !== appDomain && hostname !== `www.${appDomain}`;
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
         requestHeaders.set("x-tenant-subdomain", subdomain);
 
         // Rewrite to a dynamic route for handling tenant public pages
-        // e.g., goldgym.gymnexus.com -> /site/goldgym
+        // e.g., goldgym.FitStack.com -> /site/goldgym
         // Only if it's NOT a clear app route (like /api, /_next, etc)
         const url = request.nextUrl.clone();
         if (!url.pathname.startsWith("/api") && !url.pathname.startsWith("/_next") && !url.pathname.startsWith("/dashboard") && !url.pathname.startsWith("/admin") && !url.pathname.startsWith("/login")) {

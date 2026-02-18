@@ -33,7 +33,7 @@ export function Sidebar() {
             <div className="flex h-16 items-center px-6 border-b border-gray-800">
                 <Link href="/dashboard" className="flex items-center gap-2">
                     <Building2 className="h-6 w-6 text-indigo-500" />
-                    <span className="text-lg font-bold tracking-tight">GymNexus</span>
+                    <span className="text-lg font-bold tracking-tight">FitStack</span>
                 </Link>
             </div>
 

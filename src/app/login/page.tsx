@@ -47,7 +47,7 @@ export default function LoginPage() {
                         </div>
                     </Link>
                     <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
-                    <p className="text-gray-400 text-sm">Sign in to your GymNexus command center.</p>
+                    <p className="text-gray-400 text-sm">Sign in to your FitStack command center.</p>
                 </div>
 
                 <form action={handleSubmit} className="mt-8 space-y-6">

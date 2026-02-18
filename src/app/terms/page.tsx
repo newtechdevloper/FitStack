@@ -11,17 +11,17 @@ export default function TermsPage() {
                 </p>
                 <div className="mt-10 max-w-2xl">
                     <p>
-                        Welcome to GymNexus. By accessing or using our website and services, you agree to be bound by these Terms of Service and our Privacy Policy.
+                        Welcome to FitStack. By accessing or using our website and services, you agree to be bound by these Terms of Service and our Privacy Policy.
                     </p>
 
                     <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">1. Services</h2>
                     <p className="mt-6">
-                        GymNexus provides a management platform for gym owners ("Tenants") to manage their members, classes, and billing. We grant you a limited, non-exclusive, non-transferable license to use our Service.
+                        FitStack provides a management platform for gym owners ("Tenants") to manage their members, classes, and billing. We grant you a limited, non-exclusive, non-transferable license to use our Service.
                     </p>
 
                     <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">2. Accounts</h2>
                     <p className="mt-6">
-                        You must provide accurate information when creating an account. You are responsible for maintaining the security of your account and password. GymNexus is not liable for any loss or damage from your failure to comply with this security obligation.
+                        You must provide accurate information when creating an account. You are responsible for maintaining the security of your account and password. FitStack is not liable for any loss or damage from your failure to comply with this security obligation.
                     </p>
 
                     <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">3. Payments and Billing</h2>
@@ -36,7 +36,7 @@ export default function TermsPage() {
 
                     <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">5. Limitation of Liability</h2>
                     <p className="mt-6">
-                        In no event shall GymNexus, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.
+                        In no event shall FitStack, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.
                     </p>
                 </div>
             </div>

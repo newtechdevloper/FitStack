@@ -19,7 +19,7 @@ export default function Home() {
             <div className="w-8 h-8 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-lg flex items-center justify-center">
               <Zap className="w-5 h-5 text-white fill-current" />
             </div>
-            <span className="font-bold text-2xl tracking-tighter text-white">GymNexus</span>
+            <span className="font-bold text-2xl tracking-tighter text-white">FitStack</span>
           </Link>
           <nav className="hidden md:flex gap-8">
             <Link className="text-sm font-medium text-gray-300 hover:text-white hover:text-glow transition-all" href="/#features">
@@ -189,7 +189,7 @@ export default function Home() {
                 <div className="w-8 h-8 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-lg flex items-center justify-center">
                   <Zap className="w-5 h-5 text-white fill-current" />
                 </div>
-                <span className="font-bold text-xl tracking-tighter text-white">GymNexus</span>
+                <span className="font-bold text-xl tracking-tighter text-white">FitStack</span>
               </Link>
               <p className="text-gray-400 text-sm leading-relaxed max-w-xs mb-6">
                 The operating system for the next generation of fitness brands.
@@ -235,7 +235,7 @@ export default function Home() {
           </div>
 
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-600">© 2024 GymNexus Inc. All rights reserved.</p>
+            <p className="text-xs text-gray-600">© 2024 FitStack Inc. All rights reserved.</p>
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
               Systems Nominal

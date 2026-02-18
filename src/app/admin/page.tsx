@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: 'Super Admin | GymNexus',
+    title: 'Super Admin | FitStack',
 };
 
 async function getAdminStats() {
@@ -173,7 +173,7 @@ export default async function AdminPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-white truncate">{tenant.name}</p>
-                                            <p className="text-xs text-zinc-500">{tenant.slug}.gymnexus.com · {tenant._count.users} users</p>
+                                            <p className="text-xs text-zinc-500">{tenant.slug}.FitStack.com · {tenant._count.users} users</p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${statusColors[status] || statusColors.trialing}`}>

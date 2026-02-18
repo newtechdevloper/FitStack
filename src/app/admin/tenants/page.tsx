@@ -104,11 +104,11 @@ export default async function TenantsPage() {
                                                 <div>
                                                     <p className="font-semibold text-white text-sm">{tenant.name}</p>
                                                     <a
-                                                        href={`https://${tenant.slug}.gymnexus.com`}
+                                                        href={`https://${tenant.slug}.FitStack.com`}
                                                         target="_blank"
                                                         className="text-xs text-zinc-500 hover:text-violet-400 transition-colors flex items-center gap-1"
                                                     >
-                                                        {tenant.slug}.gymnexus.com
+                                                        {tenant.slug}.FitStack.com
                                                         <ExternalLink className="h-2.5 w-2.5" />
                                                     </a>
                                                 </div>

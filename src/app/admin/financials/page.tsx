@@ -87,7 +87,7 @@ export default async function FinancialsPage() {
                                     <tr key={sub.id} className="hover:bg-zinc-800/20 transition-colors">
                                         <td className="px-6 py-4">
                                             <p className="font-medium text-white text-sm">{sub.tenant.name}</p>
-                                            <p className="text-xs text-zinc-500">{sub.tenant.slug}.gymnexus.com</p>
+                                            <p className="text-xs text-zinc-500">{sub.tenant.slug}.FitStack.com</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-zinc-300 text-sm">{sub.plan.name}</span>

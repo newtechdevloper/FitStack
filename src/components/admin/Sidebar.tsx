@@ -53,7 +53,7 @@ export function AdminSidebar() {
                     <Shield className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                    <p className="text-sm font-bold text-white">GymNexus</p>
+                    <p className="text-sm font-bold text-white">FitStack</p>
                     <p className="text-xs text-violet-400 font-medium">Super Admin</p>
                 </div>
             </div>
@@ -98,7 +98,7 @@ export function AdminSidebar() {
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-white truncate">Super Admin</p>
-                        <p className="text-xs text-zinc-500 truncate">admin@gymnexus.com</p>
+                        <p className="text-xs text-zinc-500 truncate">admin@FitStack.com</p>
                     </div>
                     <Settings className="h-3.5 w-3.5 text-zinc-600 hover:text-zinc-400 cursor-pointer" />
                 </div>

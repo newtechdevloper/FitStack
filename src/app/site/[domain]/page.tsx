@@ -1,7 +1,7 @@
 
 import { notFound } from "next/navigation";
 
-// This page renders for [subdomain].gymnexus.com via middleware rewrite
+// This page renders for [subdomain].FitStack.com via middleware rewrite
 // The subdomain is passed as a param because of the rewrite URL structure: /site/[domain]/page
 export default async function TenantSite(props: { params: Promise<{ domain: string }> }) {
     // In a real app, fetch tenant config from DB

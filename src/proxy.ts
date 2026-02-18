@@ -10,7 +10,7 @@ export default auth(async (req) => {
     const hostname = req.headers.get("host") || "";
 
     // Root domain from environment — set NEXT_PUBLIC_ROOT_DOMAIN in Vercel dashboard.
-    // e.g. "gymnexus.com" for production, "localhost:3000" for local dev.
+    // e.g. "FitStack.com" for production, "localhost:3000" for local dev.
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 
     // A request is a subdomain request if the hostname is NOT the root domain

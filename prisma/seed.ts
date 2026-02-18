@@ -6,7 +6,7 @@ import { hashSync } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-    const demoEmail = "demo@gymnexus.com";
+    const demoEmail = "demo@FitStack.com";
     const demoPassword = "password123";
     const hashedPassword = hashSync(demoPassword, 10);
 

@@ -11,7 +11,7 @@ export default function PrivacyPage() {
                 </p>
                 <div className="mt-10 max-w-2xl">
                     <p>
-                        Your privacy is important to us. It is GymNexus's policy to respect your privacy regarding any information we may collect from you across our website.
+                        Your privacy is important to us. It is FitStack's policy to respect your privacy regarding any information we may collect from you across our website.
                     </p>
 
                     <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">1. Information We Collect</h2>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
 
                     <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">5. Contact Us</h2>
                     <p className="mt-6">
-                        If you have any questions about this Privacy Policy, please contact us at support@gymnexus.com.
+                        If you have any questions about this Privacy Policy, please contact us at support@FitStack.com.
                     </p>
                 </div>
             </div>

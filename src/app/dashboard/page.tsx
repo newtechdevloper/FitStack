@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { DollarSign, Users, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight, CreditCard } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: 'Dashboard | GymNexus',
+    title: 'Dashboard | FitStack',
 };
 
 export default function DashboardPage() {

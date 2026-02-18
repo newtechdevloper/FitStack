@@ -23,7 +23,7 @@ export default function AdminSettingsPage() {
                             <label className="block text-sm font-medium text-zinc-400 mb-1">Support Email</label>
                             <input
                                 type="email"
-                                defaultValue="support@gymnexus.com"
+                                defaultValue="support@FitStack.com"
                                 className="w-full rounded-xl bg-zinc-950 border border-zinc-800 text-white px-4 py-2 focus:ring-2 focus:ring-indigo-500/50 outline-none"
                             />
                         </div>
@@ -31,7 +31,7 @@ export default function AdminSettingsPage() {
                             <label className="block text-sm font-medium text-zinc-400 mb-1">Platform Name</label>
                             <input
                                 type="text"
-                                defaultValue="GymNexus"
+                                defaultValue="FitStack"
                                 className="w-full rounded-xl bg-zinc-950 border border-zinc-800 text-white px-4 py-2 focus:ring-2 focus:ring-indigo-500/50 outline-none"
                             />
                         </div>
