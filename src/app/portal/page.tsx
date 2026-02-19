@@ -1,4 +1,5 @@
 
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -147,6 +148,9 @@ export default async function PortalHome() {
                             {">>"} Accessing {upcomingSessions.length} available sessions
                         </p>
                     </div>
+                    <Link href="/portal/bookings" className="glass-morphism px-4 py-2 rounded-xl text-[10px] font-black text-indigo-400 uppercase tracking-widest border-indigo-500/20 hover:bg-indigo-500/10 transition-all">
+                        My Bookings {">>"}
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
