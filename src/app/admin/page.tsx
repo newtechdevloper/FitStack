@@ -1,5 +1,6 @@
+import Link from "next/link";
+import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { Metadata } from 'next';
 import {
     Building2, Users, CreditCard, Activity, TrendingUp, DollarSign,
     AlertTriangle, ArrowUpRight, ArrowDownRight, Zap, Globe, Shield
@@ -10,16 +11,13 @@ export const metadata: Metadata = {
 };
 
 async function getAdminStats() {
-    const [tenantCount, userCount, activeSubs, recentTenants, auditLogs] = await Promise.all([
-        prisma.tenant.count(),
-        prisma.user.count(),
-        prisma.tenant.count({
-            where: { tenantSubscription: { status: 'active' } }
-        }),
+    const [tenants, userCount, subscriptions, auditLogs] = await Promise.all([
         prisma.tenant.findMany({
-            take: 6,
-            orderBy: { createdAt: 'desc' },
-            include: { tenantSubscription: true, plan: true, _count: { select: { users: true } } }
+            include: { tenantSubscription: { include: { plan: true } } }
+        }),
+        prisma.user.count(),
+        prisma.tenantSubscription.findMany({
+            include: { plan: true }
         }),
         prisma.auditLog.findMany({
             take: 8,
@@ -27,22 +25,69 @@ async function getAdminStats() {
         })
     ]);
 
-    const estimatedMRR = activeSubs * 79;
-    const churnedCount = await prisma.tenant.count({
-        where: { tenantSubscription: { status: 'canceled' } }
+    const tenantCount = tenants.length;
+    const activeSubs = subscriptions.filter(s => s.status === 'active');
+    const churnedCount = subscriptions.filter(s => s.status === 'canceled').length;
+
+    // MRR Calculation: Sum of plan prices for active subscriptions
+    const estimatedMRR = activeSubs.reduce((acc, sub) => acc + Number((sub.plan as any)?.price || 79), 0);
+
+    // Churn Rate: (Churned / Total) * 100
+    const churnRate = tenantCount > 0 ? (churnedCount / tenantCount) * 100 : 0;
+
+    const recentTenants = await prisma.tenant.findMany({
+        take: 6,
+        orderBy: { createdAt: 'desc' },
+        include: {
+            tenantSubscription: true,
+            plan: true,
+            _count: { select: { users: true } }
+        }
     });
 
-    return { tenantCount, userCount, activeSubs, estimatedMRR, recentTenants, auditLogs, churnedCount };
+    return JSON.parse(JSON.stringify({
+        tenantCount,
+        userCount,
+        activeSubs: activeSubs.length,
+        estimatedMRR,
+        recentTenants,
+        auditLogs,
+        churnedCount,
+        churnRate
+    }));
 }
 
 export default async function AdminPage() {
-    const { tenantCount, userCount, activeSubs, estimatedMRR, recentTenants, auditLogs, churnedCount } = await getAdminStats();
+    let data;
+    try {
+        data = await getAdminStats();
+    } catch (error) {
+        console.error("Dashboard Stats Fetch Error:", error);
+        return (
+            <div className="p-8 glass-morphism rounded-3xl border border-red-500/20 bg-red-500/5">
+                <p className="text-red-400 font-mono text-xs uppercase tracking-widest">
+                    [SYSTEM_ERROR] Failed to synchronize dashboard telemetry. Check database connection.
+                </p>
+            </div>
+        );
+    }
+
+    const {
+        tenantCount,
+        userCount,
+        activeSubs,
+        estimatedMRR,
+        recentTenants,
+        auditLogs,
+        churnedCount,
+        churnRate
+    } = data;
 
     const stats = [
         {
             label: "Monthly Recurring Revenue",
             value: `$${estimatedMRR.toLocaleString()}`,
-            change: "+12.5%",
+            change: "+12.5%", // Placeholder for trend
             trend: "up",
             icon: DollarSign,
             color: "text-emerald-400",
@@ -73,10 +118,10 @@ export default async function AdminPage() {
             glow: "shadow-blue-500/10"
         },
         {
-            label: "Active Subscriptions",
-            value: activeSubs.toString(),
-            change: `${churnedCount} churned`,
-            trend: churnedCount > 2 ? "down" : "up",
+            label: "Churn Protocol",
+            value: `${churnRate.toFixed(1)}%`,
+            change: `${churnedCount} nodes offline`,
+            trend: churnRate > 5 ? "down" : "up",
             icon: Activity,
             color: "text-amber-400",
             bg: "bg-amber-400/10",
@@ -93,168 +138,150 @@ export default async function AdminPage() {
     ];
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
+        <div className="space-y-10 relative">
+            {/* Header with holographic glow */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">
-                        Platform Overview
+                    <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase group relative inline-block">
+                        <span className="relative z-10">Platform Pulse</span>
+                        <div className="absolute -inset-x-2 -inset-y-1 bg-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     </h1>
-                    <p className="text-zinc-400 mt-1 text-sm">
-                        Real-time platform metrics · Last updated just now
+                    <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
+                        {">>"} Operational Monitoring · System Time: {new Date().toLocaleTimeString()}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-3 py-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        All Systems Operational
-                    </span>
+                <div className="flex items-center gap-3">
+                    <div className="glass-morphism px-4 py-2 rounded-xl flex items-center gap-2 border-cyan-500/20 shadow-[0_0_15px_rgba(0,243,255,0.05)]">
+                        <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(0,243,255,0.8)]" />
+                        <span className="text-[10px] font-bold text-cyan-200 uppercase tracking-widest">Core Status: Optimal</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, i) => (
-                    <div key={i} className={`relative overflow-hidden rounded-2xl border ${stat.border} ${stat.bg} p-6 shadow-lg ${stat.glow} transition-all hover:scale-[1.02] hover:shadow-xl`}>
-                        <div className="flex items-start justify-between">
+            {/* Stats Grid - Holographic Cards */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {stats.map((stat: any, i: number) => (
+                    <div key={i} className={`holographic-card glass-morphism p-6 rounded-3xl border ${stat.border} shadow-2xl relative group overflow-hidden`}>
+                        {/* Glow effect on hover */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${stat.bg} opacity-0 group-hover:opacity-10 transition-opacity`} />
+
+                        <div className="flex items-start justify-between relative z-10">
                             <div>
-                                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{stat.label}</p>
-                                <p className="mt-2 text-3xl font-bold text-white">{stat.value}</p>
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">{stat.label}</p>
+                                <p className="mt-2 text-3xl font-black text-white tracking-tighter italic">{stat.value}</p>
                             </div>
-                            <div className={`rounded-xl p-2.5 ${stat.bg} border ${stat.border}`}>
-                                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                            <div className={`rounded-2xl p-3 glass-morphism border ${stat.border}`}>
+                                <stat.icon className={`h-5 w-5 ${stat.color} drop-shadow-[0_0_8px_rgba(var(--primary-glow))]`} />
                             </div>
                         </div>
-                        <div className="mt-4 flex items-center gap-1.5">
-                            {stat.trend === "up"
-                                ? <ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />
-                                : <ArrowDownRight className="h-3.5 w-3.5 text-red-400" />
-                            }
-                            <span className={`text-xs font-medium ${stat.trend === "up" ? "text-emerald-400" : "text-red-400"}`}>
+
+                        <div className="mt-6 flex items-center gap-2 relative z-10">
+                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${stat.trend === "up" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+                                {stat.trend === "up" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                                 {stat.change}
+                            </div>
+                            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-none">
+                                Variance Logic: {stat.trend === "up" ? "Growth" : "Anomaly"}
                             </span>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid gap-6 lg:grid-cols-3">
-                {/* Recent Tenants */}
-                <div className="lg:col-span-2 rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-zinc-400" />
-                            Recent Gym Registrations
-                        </h3>
-                        <a href="/admin/tenants" className="text-xs font-medium text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1">
-                            View All <ArrowUpRight className="h-3 w-3" />
-                        </a>
+            {/* Middle Section: Main Console View */}
+            <div className="grid gap-6 lg:grid-cols-3 relative">
+                {/* Recent Tenants Console */}
+                <div className="lg:col-span-2 glass-morphism rounded-3xl p-8 relative overflow-hidden border-white/5 shadow-2xl">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                        <Building2 className="h-32 w-32 text-indigo-500" />
                     </div>
-                    <div className="space-y-1">
+
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 glass-morphism rounded-xl flex items-center justify-center border-indigo-500/30">
+                                <Building2 className="h-5 w-5 text-indigo-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Tenant Feed</h3>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.1em]">Stream tracking 6 recent nodes</p>
+                            </div>
+                        </div>
+                        <Link href="/admin/tenants" className="glass-morphism px-4 py-2 rounded-xl text-[10px] font-black text-indigo-400 uppercase tracking-widest border-indigo-500/20 hover:bg-indigo-500/10 transition-all">
+                            Access Full Database {">>"}
+                        </Link>
+                    </div>
+
+                    <div className="space-y-3 relative z-10">
                         {recentTenants.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <Building2 className="h-10 w-10 text-zinc-700 mb-3" />
-                                <p className="text-zinc-500 text-sm">No tenants registered yet.</p>
+                            <div className="glass-morphism rounded-2xl py-12 text-center border-dashed border-zinc-800">
+                                <p className="text-zinc-600 font-mono text-sm uppercase tracking-widest">Waiting for tenant sync...</p>
                             </div>
                         ) : (
-                            recentTenants.map((tenant) => {
-                                const status = tenant.tenantSubscription?.status || 'trialing';
-                                const statusColors: Record<string, string> = {
-                                    active: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
-                                    trialing: 'bg-amber-400/10 text-amber-400 border-amber-400/20',
-                                    canceled: 'bg-red-400/10 text-red-400 border-red-400/20',
-                                    past_due: 'bg-orange-400/10 text-orange-400 border-orange-400/20',
-                                };
-                                return (
-                                    <div key={tenant.id} className="flex items-center gap-4 rounded-xl px-4 py-3 hover:bg-zinc-800/40 transition-colors group">
-                                        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center text-violet-300 font-bold text-sm border border-violet-500/20 flex-shrink-0">
-                                            {tenant.name.substring(0, 2).toUpperCase()}
+                            recentTenants.map((tenant: any) => (
+                                <div key={tenant.id} className="group flex items-center gap-4 glass-morphism rounded-2xl p-4 hover:bg-white/5 transition-all border-white/5">
+                                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-white font-black text-lg border border-white/10 italic">
+                                        {tenant.name.substring(0, 1)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm font-black text-white uppercase tracking-tighter">{tenant.name}</p>
+                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-white truncate">{tenant.name}</p>
-                                            <p className="text-xs text-zinc-500">{tenant.slug}.FitStack.com · {tenant._count.users} users</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${statusColors[status] || statusColors.trialing}`}>
-                                                {status.toUpperCase()}
-                                            </span>
-                                            <span className="text-xs text-zinc-600">{new Date(tenant.createdAt).toLocaleDateString()}</span>
+                                        <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-[0.05em]">{tenant.slug}.fitstack.com · Nodes: {tenant._count.users}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1.5">Active Node</p>
+                                        <div className="h-1 w-20 rounded-full bg-zinc-800 overflow-hidden">
+                                            <div className="h-full bg-indigo-500 rounded-full w-[85%] shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
                                         </div>
                                     </div>
-                                );
-                            })
+                                </div>
+                            ))
                         )}
                     </div>
                 </div>
 
-                {/* System Health */}
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-6 space-y-5">
-                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-zinc-400" />
-                        System Health
-                    </h3>
-                    {systemHealth.map((item) => (
-                        <div key={item.label} className="space-y-1.5">
-                            <div className="flex justify-between text-xs">
-                                <span className="text-zinc-400">{item.label}</span>
-                                <span className={`font-medium ${item.status === 'healthy' ? 'text-emerald-400' : 'text-amber-400'}`}>{item.value}</span>
-                            </div>
-                            <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all ${item.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                                    style={{ width: `${item.pct}%` }}
-                                />
-                            </div>
+                {/* System Diagnostics */}
+                <div className="glass-morphism rounded-3xl p-8 border-white/5 relative overflow-hidden shadow-2xl">
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="h-10 w-10 glass-morphism rounded-xl flex items-center justify-center border-cyan-500/30">
+                            <Shield className="h-5 w-5 text-cyan-400" />
                         </div>
-                    ))}
+                        <div>
+                            <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Diagnostics</h3>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.1em]">Engine health protocols</p>
+                        </div>
+                    </div>
 
-                    <div className="pt-2 space-y-2">
-                        <a href="/admin/risk" className="flex items-center justify-between w-full rounded-lg bg-red-500/5 border border-red-500/20 px-3 py-2.5 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors">
-                            <span className="flex items-center gap-2"><AlertTriangle className="h-3.5 w-3.5" /> Risk Alerts</span>
-                            <span className="bg-red-500/20 text-red-300 rounded-full px-1.5 py-0.5 text-xs">2</span>
-                        </a>
-                        <a href="/admin/audit" className="flex items-center justify-between w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-3 py-2.5 text-xs font-medium text-zinc-400 hover:bg-zinc-800 transition-colors">
-                            <span className="flex items-center gap-2"><Zap className="h-3.5 w-3.5" /> Recent Audit Events</span>
-                            <span className="text-zinc-500">{auditLogs.length}</span>
-                        </a>
+                    <div className="space-y-6">
+                        {systemHealth.map((item: any) => (
+                            <div key={item.label} className="space-y-2">
+                                <div className="flex justify-between items-end">
+                                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.label}</span>
+                                    <span className={`text-xs font-black italic ${item.status === 'healthy' ? 'text-cyan-400' : 'text-amber-400'}`}>{item.value}</span>
+                                </div>
+                                <div className="h-2 w-full rounded-full bg-black/40 border border-white/5 p-[2px]">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-1000 ${item.status === 'healthy'
+                                            ? 'bg-gradient-to-r from-cyan-600 to-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]'
+                                            : 'bg-gradient-to-r from-amber-600 to-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`}
+                                        style={{ width: `${item.pct}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-10 pt-6 border-t border-white/5 space-y-3">
+                        <Link href="/admin/risk" className="flex items-center justify-between w-full glass-morphism border-red-500/20 px-4 py-3 rounded-2xl group hover:bg-red-500/5 transition-all">
+                            <span className="text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-2">
+                                <AlertTriangle className="h-3.5 w-3.5 group-hover:animate-bounce" /> Risk Alerts
+                            </span>
+                            <span className="bg-red-500/20 text-red-400 font-black px-2 py-0.5 rounded-lg text-[10px]">02</span>
+                        </Link>
                     </div>
                 </div>
             </div>
-
-            {/* Recent Audit Log */}
-            {auditLogs.length > 0 && (
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-base font-semibold text-white">Recent Audit Events</h3>
-                        <a href="/admin/audit" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">View All</a>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-zinc-800">
-                                    <th className="text-left text-xs font-medium text-zinc-500 pb-3 pr-4">Action</th>
-                                    <th className="text-left text-xs font-medium text-zinc-500 pb-3 pr-4">Resource</th>
-                                    <th className="text-left text-xs font-medium text-zinc-500 pb-3 pr-4">IP</th>
-                                    <th className="text-left text-xs font-medium text-zinc-500 pb-3">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-zinc-800/50">
-                                {auditLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-zinc-800/20 transition-colors">
-                                        <td className="py-3 pr-4">
-                                            <span className="font-mono text-xs bg-zinc-800 text-zinc-300 rounded px-2 py-0.5">{log.action}</span>
-                                        </td>
-                                        <td className="py-3 pr-4 text-zinc-400 text-xs">{log.resource}</td>
-                                        <td className="py-3 pr-4 text-zinc-500 text-xs font-mono">{log.ip || '—'}</td>
-                                        <td className="py-3 text-zinc-600 text-xs">{new Date(log.createdAt).toLocaleString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

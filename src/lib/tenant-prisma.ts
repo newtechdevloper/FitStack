@@ -15,10 +15,6 @@ export function getTenantPrisma(tenantId: string) {
         query: {
             $allModels: {
                 async $allOperations({ model, operation, args, query }) {
-                    // If the model has a tenantId field, inject it.
-                    // We need to check if the model actually has tenantId to avoid errors on global models (like User/Account).
-                    // For now, we assume most models do, or we specifically exclude global ones.
-
                     // List of Global Models that should NOT be scoped
                     const globalModels = ['User', 'Account', 'Session', 'VerificationToken', 'Plan', 'Tenant', 'TenantSubscription', 'FinancialSnapshot', 'WebhookEvent'];
 
@@ -28,9 +24,10 @@ export function getTenantPrisma(tenantId: string) {
 
                     // Helper to cast args
                     const params = args as any;
+                    const op = operation as string;
 
                     // Handle 'create' operations - inject into data
-                    if (operation === 'create' || operation === 'createMany') {
+                    if (op === 'create' || op === 'createMany') {
                         if (params.data) {
                             if (Array.isArray(params.data)) {
                                 params.data = params.data.map((d: any) => ({ ...d, tenantId }));
@@ -43,13 +40,12 @@ export function getTenantPrisma(tenantId: string) {
 
                     // Handle operations that use 'where'
                     // findUnique, findFirst, findMany, update, updateMany, delete, deleteMany, count, aggregate, groupBy
-                    if (operation !== 'create' && operation !== 'createMany') {
-                        if (args.where) {
-                            // @ts-ignore
-                            args.where = { ...args.where, tenantId };
+                    if (op !== 'create' && op !== 'createMany') {
+                        const a = args as any;
+                        if (a.where) {
+                            a.where = { ...a.where, tenantId };
                         } else {
-                            // @ts-ignore
-                            args.where = { tenantId };
+                            a.where = { tenantId };
                         }
                     }
 

@@ -1,4 +1,5 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { auth } from "@/auth";
 
 /**
  * Tenant Context Helper
@@ -10,18 +11,31 @@ import { headers } from "next/headers";
 export interface TenantContext {
     subdomain: string | null;
     tenantId: string | null;
+    isImpersonating: boolean;
 }
 
 export async function getTenantContext(): Promise<TenantContext> {
     const headerStore = await headers();
+    const cookieStore = await cookies();
+    const session = await auth();
+
     const subdomain = headerStore.get("x-tenant-subdomain");
-    // If we had an ID lookup in middleware, we'd get x-tenant-id here
-    // For now, we rely on subdomain or explicit header
-    const tenantId = headerStore.get("x-tenant-id");
+    let tenantId = headerStore.get("x-tenant-id");
+
+    // Impersonation Logic for Super Admins
+    let isImpersonating = false;
+    if (session?.user?.globalRole === 'SUPER_ADMIN') {
+        const impersonatedId = cookieStore.get("impersonated_tenant_id")?.value;
+        if (impersonatedId) {
+            tenantId = impersonatedId;
+            isImpersonating = true;
+        }
+    }
 
     return {
         subdomain: subdomain || null,
         tenantId: tenantId || null,
+        isImpersonating
     };
 }
 

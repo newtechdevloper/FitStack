@@ -104,39 +104,49 @@ export default async function PortalHome() {
 
     return (
         <div className="space-y-10">
-            {/* Hero Section */}
-            <div className="relative overflow-hidden rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20">
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 h-[300px] w-[300px] rounded-full bg-white/10 blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-[300px] w-[300px] rounded-full bg-indigo-500 blur-3xl"></div>
+            {/* Hero Section - Holographic */}
+            <div className="relative overflow-hidden rounded-[2.5rem] glass-morphism border border-indigo-500/20 bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.1)] group">
+                {/* Background effects */}
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 h-[400px] w-[400px] rounded-full bg-indigo-500/10 blur-[100px] group-hover:bg-indigo-500/20 transition-all duration-1000"></div>
+                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-[300px] w-[300px] rounded-full bg-emerald-500/10 blur-[80px] group-hover:bg-emerald-500/20 transition-all duration-1000"></div>
 
-                <div className="relative px-8 py-12 md:px-12 md:flex md:items-center md:justify-between">
+                <div className="relative px-8 py-14 md:px-14 md:flex md:items-center md:justify-between">
                     <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-                            Welcome back, {session.user.name?.split(' ')[0]}! 👋
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="h-1 w-12 bg-indigo-500 rounded-full" />
+                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em]">NEURAL INTERFACE V1.0</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white italic tracking-tighter md:text-5xl uppercase leading-none">
+                            Welcome back, <span className="text-glow">{session.user.name?.split(' ')[0]}</span>!
                         </h1>
-                        <p className="mt-4 max-w-lg text-lg text-indigo-100">
-                            Ready to crush your goals today? Check out the upcoming classes at <span className="font-bold text-white">{membership.tenant.name}</span>.
+                        <p className="mt-6 max-w-lg text-sm font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+                            Synchronization complete. <span className="text-white italic">{membership.tenant.name}</span> is operational. <br />
+                            Prepare for physical optimization.
                         </p>
                     </div>
-                    <div className="mt-8 flex gap-4 md:mt-0">
+                    <div className="mt-10 flex gap-4 md:mt-0">
                         {stats.map((stat, i) => (
-                            <div key={i} className="rounded-2xl bg-white/10 backdrop-blur-md p-4 min-w-[100px] text-center border border-white/10">
-                                <div className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full ${stat.bg}`}>
-                                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                            <div key={i} className="rounded-3xl glass-morphism border border-white/5 p-6 min-w-[130px] text-center hover:bg-white/5 transition-all group/stat">
+                                <div className={`mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-xl glass-morphism border border-white/10 group-hover/stat:scale-110 transition-transform`}>
+                                    <stat.icon className={`h-5 w-5 ${stat.color} drop-shadow-[0_0_8px_currentColor]`} />
                                 </div>
-                                <p className="text-xl font-bold">{stat.value}</p>
-                                <p className="text-xs text-indigo-200">{stat.label}</p>
+                                <p className="text-2xl font-black text-white italic tracking-tighter leading-none">{stat.value}</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-2">{stat.label}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* Upcoming Classes Grid */}
+            {/* Upcoming Classes - Cyber Grid */}
             <div>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Available Classes</h2>
-                    <span className="text-sm font-medium text-indigo-600">Showing {upcomingSessions.length} upcoming sessions</span>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 uppercase tracking-tighter">
+                    <div>
+                        <h2 className="text-3xl font-black text-white italic">Protocol Registry</h2>
+                        <p className="text-cyan-400 font-mono text-[10px] mt-1 uppercase tracking-[0.3em] font-bold">
+                            {">>"} Accessing {upcomingSessions.length} available sessions
+                        </p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -146,54 +156,54 @@ export default async function PortalHome() {
                         const sessionDate = new Date(classSession.startTime);
 
                         return (
-                            <div key={classSession.id} className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-lg hover:border-indigo-100 transition-all hover:-translate-y-1">
-                                <div className="p-6 flex-1">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex-shrink-0 flex flex-col items-center justify-center h-14 w-14 rounded-xl bg-gray-50 text-gray-700 font-bold border border-gray-200 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-colors">
-                                            <span className="text-xs uppercase">{sessionDate.toLocaleString('default', { weekday: 'short' })}</span>
-                                            <span className="text-lg">{sessionDate.getDate()}</span>
+                            <div key={classSession.id} className="group holographic-card glass-morphism flex flex-col overflow-hidden rounded-3xl border border-white/5 hover:border-indigo-500/30 transition-all hover:shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+                                <div className="p-8 flex-1 relative z-10">
+                                    <div className="flex items-start justify-between mb-6">
+                                        <div className="flex flex-col items-center justify-center h-16 w-16 rounded-2xl glass-morphism border border-white/10 font-black text-white italic group-hover:border-indigo-500/40 transition-colors">
+                                            <span className="text-[10px] uppercase opacity-50">{sessionDate.toLocaleString('default', { weekday: 'short' })}</span>
+                                            <span className="text-xl leading-none mt-1">{sessionDate.getDate()}</span>
                                         </div>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${isBooked ? 'bg-green-100 text-green-800' : isFull ? 'bg-gray-100 text-gray-600' : 'bg-indigo-50 text-indigo-700'
+                                        <div className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest border ${isBooked ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : isFull ? 'bg-zinc-800 text-zinc-500 border-white/5' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
                                             }`}>
-                                            {isBooked ? 'Booked' : isFull ? 'Waitlist' : 'Open'}
-                                        </span>
+                                            {isBooked ? 'Synchronized' : isFull ? 'Capacity' : 'Available'}
+                                        </div>
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2 truncate" title={classSession.class.name}>
+                                    <h3 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter group-hover:text-glow transition-all" title={classSession.class.name}>
                                         {classSession.class.name}
                                     </h3>
 
-                                    <div className="space-y-2 text-sm text-gray-500 mb-6">
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="h-4 w-4 text-gray-400" />
-                                            {sessionDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} • {classSession.class.duration} min
+                                    <div className="space-y-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-8">
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                                            {sessionDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} · {classSession.class.duration}M Duration
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <User className="h-4 w-4 text-gray-400" />
-                                            {classSession.class.instructor?.user.name || "Instructor"}
+                                        <div className="flex items-center gap-3">
+                                            <User className="h-3.5 w-3.5 text-indigo-400" />
+                                            Admin: {classSession.class.instructor?.user.name || "Unknown"}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Zap className="h-4 w-4 text-gray-400" />
-                                            {classSession._count.bookings} / {classSession.class.capacity} spots taken
+                                        <div className="flex items-center gap-3">
+                                            <Zap className="h-3.5 w-3.5 text-indigo-400" />
+                                            Nodes: {classSession._count.bookings} / {classSession.class.capacity}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="p-4 bg-gray-50/50 border-t border-gray-100">
+                                <div className="p-6 bg-white/2 border-t border-white/5 relative z-10">
                                     {isBooked ? (
-                                        <button disabled className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-500 px-4 py-3 text-sm font-semibold text-white cursor-default">
-                                            You're Booked!
+                                        <button disabled className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-4 text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] cursor-default">
+                                            Sync Confirmed
                                         </button>
                                     ) : isFull ? (
-                                        <button disabled className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-200 px-4 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed">
-                                            Full Capacity
+                                        <button disabled className="w-full flex items-center justify-center gap-2 rounded-2xl bg-zinc-800/50 border border-white/5 px-4 py-4 text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] cursor-not-allowed">
+                                            Node Full
                                         </button>
                                     ) : (
                                         <form action={bookClass} className="w-full">
                                             <input type="hidden" name="sessionId" value={classSession.id} />
-                                            <button className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-indigo-600 hover:shadow-indigo-500/20 transition-all active:scale-95">
-                                                Book Now
-                                                <ArrowRight className="h-4 w-4" />
+                                            <button className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-4 py-4 text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all active:scale-95 group/btn">
+                                                Initiate Sync
+                                                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
                                             </button>
                                         </form>
                                     )}
@@ -204,12 +214,12 @@ export default async function PortalHome() {
                 </div>
 
                 {upcomingSessions.length === 0 && (
-                    <div className="text-center py-20 bg-white rounded-3xl border border-gray-200 border-dashed">
-                        <div className="mx-auto h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                            <Calendar className="h-10 w-10 text-gray-300" />
+                    <div className="text-center py-24 glass-morphism rounded-[2.5rem] border border-white/5 border-dashed">
+                        <div className="mx-auto h-20 w-20 glass-morphism rounded-full flex items-center justify-center mb-6 border border-white/10">
+                            <Calendar className="h-8 w-8 text-zinc-700" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900">No classes scheduled</h3>
-                        <p className="mt-2 text-gray-500 max-w-md mx-auto">Looks like the gym hasn't posted the schedule for this week yet. Check back later!</p>
+                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">No Active Protocols</h3>
+                        <p className="mt-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest max-w-xs mx-auto">Neural sensors detect no upcoming class sessions in this sector.</p>
                     </div>
                 )}
             </div>

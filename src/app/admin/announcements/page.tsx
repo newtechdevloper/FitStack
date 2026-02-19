@@ -33,114 +33,131 @@ export default function AnnouncementsPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
+            {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white">Global Announcements</h1>
-                <p className="text-zinc-400 mt-1 text-sm">Broadcast messages to all gyms, owners, or members.</p>
+                <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">
+                    Broadcast Command
+                </h1>
+                <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
+                    {">>"} Initiating platform-wide communication protocols
+                </p>
             </div>
 
-            {/* Compose */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-6 space-y-5">
-                <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                    <Megaphone className="h-4 w-4 text-violet-400" />
-                    Compose Announcement
+            {/* Compose - Holographic Module */}
+            <div className="holographic-card glass-morphism rounded-3xl p-8 border-indigo-500/20 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                    <Megaphone className="h-40 w-40 text-indigo-400" />
+                </div>
+
+                <h3 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3 mb-8 relative z-10">
+                    <div className="h-10 w-10 glass-morphism rounded-xl flex items-center justify-center border-indigo-500/30">
+                        <Megaphone className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    Draft Message
                 </h3>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                        <label className="block text-xs font-medium text-zinc-400 mb-1.5">Audience</label>
+                <div className="grid gap-6 md:grid-cols-2 relative z-10">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Audience Targeting</label>
                         <select
                             value={audience}
                             onChange={(e) => setAudience(e.target.value)}
-                            className="w-full rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                            className="w-full glass-morphism border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
                         >
-                            <option value="ALL">🌍 All Users</option>
-                            <option value="OWNERS">🏢 Gym Owners Only</option>
-                            <option value="MEMBERS">👥 Members Only</option>
+                            <option value="ALL">🌍 Global Broadcast</option>
+                            <option value="OWNERS">🏢 Node Administrators</option>
+                            <option value="MEMBERS">👥 Human Identities</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-xs font-medium text-zinc-400 mb-1.5">Type</label>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Priority Level</label>
                         <select
                             value={type}
                             onChange={(e) => setType(e.target.value)}
-                            className="w-full rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                            className="w-full glass-morphism border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
                         >
-                            <option value="INFO">ℹ️ Info</option>
-                            <option value="WARNING">⚠️ Warning</option>
-                            <option value="IMPORTANT">🚨 Important</option>
-                            <option value="SUCCESS">✅ Success</option>
+                            <option value="INFO">ℹ️ Information</option>
+                            <option value="WARNING">⚠️ Warning Alert</option>
+                            <option value="IMPORTANT">🚨 Critical Signal</option>
+                            <option value="SUCCESS">✅ Operation Success</option>
                         </select>
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-xs font-medium text-zinc-400 mb-1.5">Title</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Announcement title..."
-                        className="w-full rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder:text-zinc-600"
-                    />
+                <div className="mt-6 relative z-10 space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Subject Header</label>
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Enter transmission header..."
+                            className="w-full glass-morphism border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder:text-zinc-600 font-bold uppercase tracking-tight"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Payload Content</label>
+                        <textarea
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            rows={4}
+                            placeholder="Compose transmission payload..."
+                            className="w-full glass-morphism border-white/10 text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder:text-zinc-600 resize-none font-medium"
+                        />
+                    </div>
                 </div>
 
-                <div>
-                    <label className="block text-xs font-medium text-zinc-400 mb-1.5">Message</label>
-                    <textarea
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        rows={4}
-                        placeholder="Write your announcement..."
-                        className="w-full rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder:text-zinc-600 resize-none"
-                    />
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-zinc-500">
-                        <Bell className="h-3.5 w-3.5" />
-                        Will send via in-app notification + email
+                <div className="mt-8 flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                        <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(0,243,255,0.8)]" />
+                        Multi-Channel Broadcast Protocol Active
                     </div>
                     <button
                         onClick={handleSend}
                         disabled={!title || !message}
-                        className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all ${sent
-                                ? "bg-emerald-600 text-white"
-                                : "bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                        className={`flex items-center gap-3 rounded-2xl px-8 py-3.5 text-xs font-black uppercase tracking-widest transition-all shadow-2xl ${sent
+                            ? "bg-emerald-500 text-white shadow-emerald-500/20"
+                            : "neon-border-cyan glass-morphism text-cyan-400 hover:bg-cyan-500/10 disabled:opacity-30 disabled:cursor-not-allowed"
                             }`}
                     >
                         {sent ? (
-                            <><CheckCircle className="h-4 w-4" /> Sent!</>
+                            <><CheckCircle className="h-4 w-4" /> Broadcast Initiated</>
                         ) : (
-                            <><Send className="h-4 w-4" /> Send Announcement</>
+                            <><Send className="h-4 w-4" /> Start Broadcast</>
                         )}
                     </button>
                 </div>
             </div>
 
-            {/* Past Announcements */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md overflow-hidden">
-                <div className="px-6 py-4 border-b border-zinc-800">
-                    <h3 className="text-base font-semibold text-white">Announcement History</h3>
-                </div>
-                <div className="divide-y divide-zinc-800/50">
-                    {pastAnnouncements.map((ann) => (
-                        <div key={ann.id} className="px-6 py-4 hover:bg-zinc-800/20 transition-colors">
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${typeColors[ann.type]}`}>{ann.type}</span>
-                                        <span className="text-xs text-zinc-500 flex items-center gap-1">
-                                            {ann.audience === 'ALL' ? <Globe className="h-3 w-3" /> : ann.audience === 'OWNERS' ? <Building2 className="h-3 w-3" /> : <Users className="h-3 w-3" />}
-                                            {ann.audience}
+            {/* Past Announcements - History List */}
+            <div className="space-y-4">
+                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Transmission Logs</h3>
+                <div className="grid gap-3">
+                    {pastAnnouncements.map((ann: any) => (
+                        <div key={ann.id} className="glass-morphism rounded-2xl p-6 border-white/5 hover:bg-white/5 transition-all group relative overflow-hidden">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-lg border italic uppercase tracking-widest ${typeColors[ann.type]}`}>{ann.type}</span>
+                                        <span className="text-[8px] text-zinc-500 font-black uppercase tracking-widest flex items-center gap-1.5 border border-white/5 px-2 py-0.5 rounded-lg glass-morphism">
+                                            {ann.audience === 'ALL' ? <Globe className="h-2.5 w-2.5" /> : ann.audience === 'OWNERS' ? <Building2 className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
+                                            {ann.audience} TARGET
                                         </span>
                                     </div>
-                                    <p className="text-sm font-semibold text-white">{ann.title}</p>
-                                    <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">{ann.message}</p>
+                                    <h4 className="text-sm font-black text-white uppercase tracking-tighter italic">{ann.title}</h4>
+                                    <p className="text-[10px] text-zinc-500 mt-1 line-clamp-1 font-medium">{ann.message}</p>
                                 </div>
-                                <div className="text-right flex-shrink-0">
-                                    <p className="text-xs text-zinc-500">{ann.sentAt}</p>
-                                    <p className="text-xs text-zinc-600 mt-0.5">{ann.reach.toLocaleString()} reached</p>
+                                <div className="text-right flex-shrink-0 flex items-center gap-6">
+                                    <div>
+                                        <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Impact Reach</p>
+                                        <p className="text-xs font-black text-cyan-400 font-mono tracking-widest">{ann.reach.toLocaleString()}</p>
+                                    </div>
+                                    <div className="border-l border-white/5 pl-6">
+                                        <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Log Date</p>
+                                        <p className="text-xs font-black text-white font-mono">{ann.sentAt}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

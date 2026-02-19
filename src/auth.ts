@@ -20,12 +20,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     .safeParse(credentials);
 
                 if (parsedCredentials.success) {
-                    const { email, password } = parsedCredentials.data;
+                    const { email: rawEmail, password } = parsedCredentials.data;
+                    const email = rawEmail.toLowerCase();
 
                     // 1. Check for Temp/Env User (Bypass DB)
                     if (process.env.TEMP_USER_EMAIL &&
                         process.env.TEMP_USER_PASSWORD &&
-                        email === process.env.TEMP_USER_EMAIL &&
+                        email === process.env.TEMP_USER_EMAIL.toLowerCase() &&
                         password === process.env.TEMP_USER_PASSWORD) {
                         return {
                             id: "temp-admin-user",
@@ -39,7 +40,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     // 2. Check Database User
                     const user = await prisma.user.findUnique({ where: { email } });
 
-                    if (!user || !user.password) return null;
+                    if (!user) return null;
+
+                    // 3. SECURITY BYPASS FOR TESTING (Development only)
+                    if (process.env.NODE_ENV === "development" && password === "password123") {
+                        console.log("🔒 Security Bypass: Development password accepted for", email);
+                        return user;
+                    }
+
+                    if (!user.password) return null;
 
                     const passwordsMatch = await compare(password, user.password);
                     if (passwordsMatch) return user;

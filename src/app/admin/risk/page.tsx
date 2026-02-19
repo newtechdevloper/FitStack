@@ -22,11 +22,11 @@ async function getRiskData() {
     ]);
 
     // Simulate risk scoring (in production, this would be ML-based)
-    const riskyTenants = highActivityTenants.map(t => ({
+    const riskyTenants = highActivityTenants.map((t: any) => ({
         ...t,
         riskScore: Math.floor(Math.random() * 100),
         flags: [] as string[],
-    })).filter(t => t.riskScore > 60);
+    })).filter((t: any) => t.riskScore > 60);
 
     return { recentAuditLogs, riskyTenants };
 }
@@ -47,79 +47,101 @@ export default async function RiskPage() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-10">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Risk & Fraud Detection</h1>
-                    <p className="text-zinc-400 mt-1 text-sm">Monitor suspicious activity and enforce platform security.</p>
+                    <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">
+                        Risk Core
+                    </h1>
+                    <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
+                        {">>"} Monitoring platform security & fraud heuristics
+                    </p>
                 </div>
-                <span className="flex items-center gap-1.5 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-full px-3 py-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    {riskAlerts.filter(a => a.type === 'HIGH').length} High Risk Alerts
-                </span>
+                <div className="flex items-center gap-3 text-glow">
+                    <span className="flex items-center gap-2 text-[10px] font-black italic uppercase tracking-widest text-red-400 glass-morphism border-red-500/20 px-4 py-2 rounded-xl">
+                        <AlertTriangle className="h-4 w-4 animate-pulse" />
+                        {riskAlerts.filter(a => a.type === 'HIGH').length} Critical Breach Signals
+                    </span>
+                </div>
             </div>
 
-            {/* Risk Alerts */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Active Alerts</h3>
-                {riskAlerts.map((alert) => (
-                    <div key={alert.id} className={`rounded-2xl border p-5 flex items-start gap-4 ${riskColors[alert.type]}`}>
-                        <div className={`rounded-lg p-2 border ${riskColors[alert.type]} flex-shrink-0`}>
-                            <alert.icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded border ${riskColors[alert.type]}`}>{alert.type}</span>
-                                <p className="text-sm font-semibold text-white">{alert.title}</p>
+            {/* Risk Alerts - Glassmorphism Cards */}
+            <div className="space-y-4">
+                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4">Active Threat Stream</h3>
+                <div className="grid gap-4">
+                    {riskAlerts.map((alert: any) => (
+                        <div key={alert.id} className={`glass-morphism rounded-3xl p-6 border ${riskColors[alert.type]} flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden group hover:scale-[1.01] transition-transform shadow-2xl`}>
+                            <div className={`absolute inset-0 bg-gradient-to-r ${alert.type === 'HIGH' ? 'from-red-500/5' : alert.type === 'MEDIUM' ? 'from-amber-500/5' : 'from-blue-500/5'} to-transparent transition-opacity`} />
+
+                            <div className={`rounded-2xl p-4 glass-morphism border ${riskColors[alert.type]} flex-shrink-0 relative z-10`}>
+                                <alert.icon className="h-6 w-6" />
                             </div>
-                            <p className="text-xs text-zinc-400">{alert.desc}</p>
+
+                            <div className="flex-1 min-w-0 relative z-10">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border italic uppercase tracking-widest ${riskColors[alert.type]}`}>
+                                        {alert.type} SIGNAL
+                                    </span>
+                                    <p className="text-lg font-black text-white italic tracking-tighter uppercase">{alert.title}</p>
+                                </div>
+                                <p className="text-xs text-zinc-500 font-medium leading-relaxed uppercase tracking-tight">{alert.desc}</p>
+                            </div>
+
+                            <div className="flex items-center gap-4 flex-shrink-0 relative z-10">
+                                <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">{alert.time}</span>
+                                <div className="flex items-center gap-2">
+                                    <button className="neon-border-cyan glass-morphism text-cyan-400 font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl hover:bg-cyan-500/10 transition-colors flex items-center gap-2">
+                                        <Eye className="h-3.5 w-3.5" /> Scrutinize
+                                    </button>
+                                    <button className="neon-border glass-morphism text-red-400 font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors flex items-center gap-2 border-red-500/30">
+                                        <Ban className="h-3.5 w-3.5" /> Quarantine
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                            <span className="text-xs text-zinc-600">{alert.time}</span>
-                            <button className="text-xs font-medium text-white bg-zinc-700 hover:bg-zinc-600 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1">
-                                <Eye className="h-3 w-3" /> Investigate
-                            </button>
-                            <button className="text-xs font-medium text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1">
-                                <Ban className="h-3 w-3" /> Block
-                            </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Audit Log - Glassmorphism Table */}
+            <div className="glass-morphism rounded-3xl border border-white/5 shadow-2xl overflow-hidden relative">
+                <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/2 relative z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 glass-morphism rounded-xl flex items-center justify-center border-emerald-500/30">
+                            <Activity className="h-5 w-5 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter">Event Telemetry</h3>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.1em]">Complete platform audit stream · {recentAuditLogs.length} recent pings</p>
                         </div>
                     </div>
-                ))}
-            </div>
-
-            {/* Audit Log */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md overflow-hidden">
-                <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                        <Flag className="h-4 w-4 text-zinc-400" />
-                        Audit Trail
-                    </h3>
-                    <span className="text-xs text-zinc-500">{recentAuditLogs.length} recent events</span>
                 </div>
-                <div className="overflow-x-auto">
+
+                <div className="overflow-x-auto relative z-10">
                     <table className="w-full text-sm">
-                        <thead className="bg-zinc-900/80">
+                        <thead className="bg-white/5">
                             <tr>
-                                {['Action', 'Resource', 'User ID', 'IP Address', 'Time'].map(h => (
-                                    <th key={h} className="text-left text-xs font-medium text-zinc-500 px-6 py-3">{h}</th>
+                                {['Protocol', 'Resource', 'Identity ID', 'Node IP', 'Sync Time'].map((h: string) => (
+                                    <th key={h} className="text-left text-[10px] font-black text-zinc-500 px-8 py-4 uppercase tracking-[0.2em]">{h}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-800/50">
-                            {recentAuditLogs.map((log) => (
-                                <tr key={log.id} className="hover:bg-zinc-800/20 transition-colors">
-                                    <td className="px-6 py-3">
-                                        <span className="font-mono text-xs bg-zinc-800 text-zinc-300 rounded px-2 py-0.5">{log.action}</span>
+                        <tbody className="divide-y divide-white/5">
+                            {recentAuditLogs.map((log: any) => (
+                                <tr key={log.id} className="hover:bg-white/5 transition-all group">
+                                    <td className="px-8 py-4">
+                                        <span className="font-mono text-[10px] bg-zinc-900 border border-white/5 text-indigo-400 rounded-lg px-2.5 py-1 uppercase tracking-widest italic">{log.action}</span>
                                     </td>
-                                    <td className="px-6 py-3 text-zinc-400 text-xs">{log.resource}</td>
-                                    <td className="px-6 py-3 text-zinc-500 text-xs font-mono">{log.userId.slice(0, 8)}…</td>
-                                    <td className="px-6 py-3 text-zinc-500 text-xs font-mono">{log.ip || '—'}</td>
-                                    <td className="px-6 py-3 text-zinc-600 text-xs">{new Date(log.createdAt).toLocaleString()}</td>
+                                    <td className="px-8 py-4 text-zinc-400 text-xs font-medium uppercase tracking-tighter">{log.resource}</td>
+                                    <td className="px-8 py-4 text-zinc-500 text-[10px] font-mono tracking-widest">{log.userId.slice(0, 12).toUpperCase()}…</td>
+                                    <td className="px-8 py-4 text-zinc-500 text-[10px] font-mono tracking-widest">{log.ip || '—'}</td>
+                                    <td className="px-8 py-4 text-zinc-600 text-[10px] font-mono tracking-widest">{new Date(log.createdAt).toLocaleString().split(',')[1]}</td>
                                 </tr>
                             ))}
                             {recentAuditLogs.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-zinc-500 text-sm">No audit events found.</td>
+                                    <td colSpan={5} className="px-8 py-16 text-center text-zinc-600 font-mono text-[10px] uppercase tracking-widest">Registry stream empty.</td>
                                 </tr>
                             )}
                         </tbody>

@@ -51,18 +51,25 @@ export default async function DashboardLayout({
     // For now, let's gate everyone if the Gym is down.
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            {/* Sidebar hidden on mobile, block on md+ */}
+        <div className="flex h-screen mesh-gradient-bg overflow-hidden relative">
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-grid-white opacity-5 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-indigo-500/10 blur-[120px] opacity-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-fuchsia-500/10 blur-[120px] opacity-10 pointer-events-none" />
+
+            {/* Sidebar */}
             <div className="hidden md:block fixed inset-y-0 z-50">
                 {isOwnerOrAdmin ? <Sidebar /> : <MemberSidebar />}
             </div>
 
-            <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300">
+            <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300 relative z-10">
                 <Header />
-                <main className="flex-1 overflow-y-auto p-6">
-                    <SubscriptionGate status={subscriptionStatus}>
-                        {children}
-                    </SubscriptionGate>
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+                        <SubscriptionGate status={subscriptionStatus}>
+                            {children}
+                        </SubscriptionGate>
+                    </div>
                 </main>
             </div>
         </div>

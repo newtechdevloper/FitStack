@@ -13,7 +13,7 @@ const navSections = [
         title: "Overview",
         items: [
             { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-            { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+            { name: "Analytics", href: "/admin/financials", icon: BarChart3 },
         ]
     },
     {
@@ -46,23 +46,26 @@ export function AdminSidebar() {
     const pathname = usePathname();
 
     return (
-        <div className="flex h-full w-64 flex-col bg-zinc-950 border-r border-zinc-800/50">
-            {/* Logo */}
-            <div className="flex h-16 items-center gap-3 px-6 border-b border-zinc-800/50">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/20">
-                    <Shield className="h-4 w-4 text-white" />
+        <div className="flex h-screen w-64 flex-col glass-morphism border-r border-white/5 relative overflow-hidden">
+            {/* Glossy Overlay */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+            {/* Logo Section */}
+            <div className="flex h-20 items-center gap-3 px-6 border-b border-white/5 relative bg-white/2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-[0_0_20px_rgba(99,102,241,0.4)] animate-pulse-slow">
+                    <Shield className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                    <p className="text-sm font-bold text-white">FitStack</p>
-                    <p className="text-xs text-violet-400 font-medium">Super Admin</p>
+                <div className="flex flex-col">
+                    <p className="text-sm font-black text-white tracking-widest uppercase italic">FitStack</p>
+                    <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em]">Super Console</p>
                 </div>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+            <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8 custom-scrollbar relative z-10">
                 {navSections.map((section) => (
-                    <div key={section.title}>
-                        <p className="px-3 mb-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    <div key={section.title} className="space-y-3">
+                        <p className="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] opacity-80">
                             {section.title}
                         </p>
                         <div className="space-y-1">
@@ -72,15 +75,20 @@ export function AdminSidebar() {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${isActive
-                                                ? "bg-violet-600/20 text-violet-300 border border-violet-500/30"
-                                                : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
+                                        className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-300 border ${isActive
+                                            ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                                            : "text-zinc-400 border-transparent hover:text-white hover:bg-white/5 hover:border-white/5"
                                             }`}
                                     >
-                                        <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-violet-400" : "text-zinc-500 group-hover:text-zinc-300"}`} />
-                                        {item.name}
+                                        <div className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.5)]" : "text-zinc-500"}`}>
+                                            <item.icon className="h-4 w-4" />
+                                        </div>
+                                        <span className="tracking-tight">{item.name}</span>
                                         {isActive && (
-                                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400" />
+                                            <>
+                                                <div className="absolute left-0 w-1 h-1/2 bg-indigo-400 rounded-full blur-[2px]" />
+                                                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,243,255,0.8)]" />
+                                            </>
                                         )}
                                     </Link>
                                 );
@@ -90,17 +98,22 @@ export function AdminSidebar() {
                 ))}
             </nav>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-zinc-800/50">
-                <div className="flex items-center gap-3 rounded-lg bg-zinc-900 px-3 py-2.5 border border-zinc-800">
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">
-                        SA
+            {/* User Footer - Glassy profile card */}
+            <div className="p-4 border-t border-white/5 mt-auto">
+                <div className="flex items-center gap-3 rounded-2xl bg-white/3 p-3 border border-white/5 backdrop-blur-md hover:bg-white/5 transition-all cursor-pointer group">
+                    <div className="relative">
+                        <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-indigo-600 to-fuchsia-600 p-[2px]">
+                            <div className="h-full w-full rounded-full bg-zinc-950 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden uppercase">
+                                AD
+                            </div>
+                        </div>
+                        <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-zinc-950 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-white truncate">Super Admin</p>
-                        <p className="text-xs text-zinc-500 truncate">admin@FitStack.com</p>
+                        <p className="text-xs font-bold text-white truncate leading-none">Super Admin</p>
+                        <p className="text-[10px] text-zinc-500 truncate mt-1">Status: Operational</p>
                     </div>
-                    <Settings className="h-3.5 w-3.5 text-zinc-600 hover:text-zinc-400 cursor-pointer" />
+                    <Settings className="h-3.5 w-3.5 text-zinc-600 group-hover:rotate-90 group-hover:text-indigo-400 transition-all" />
                 </div>
             </div>
         </div>

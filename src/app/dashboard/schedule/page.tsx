@@ -1,11 +1,10 @@
-
 import { getClasses, getSessions } from "@/server/actions/class";
 import { CreateClassForm } from "@/components/dashboard/ClassForm";
 import { ScheduleSessionForm } from "@/components/dashboard/ScheduleSessionForm";
 import { BookClassButton } from "@/components/dashboard/BookClassButton";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Calendar, Clock, Users, Plus, Layers } from "lucide-react";
+import { Calendar, Clock, Users, Plus, Layers, MoreHorizontal } from "lucide-react";
 
 export default async function SchedulePage() {
     const session = await auth();
@@ -20,41 +19,45 @@ export default async function SchedulePage() {
     const isMember = tenantUser?.role === 'MEMBER';
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Class Schedule</h1>
-                <p className="mt-2 text-gray-500">
-                    {isMember ? "Browse and book upcoming classes." : "Manage your class types and schedule upcoming sessions."}
+                <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">
+                    Chronos Engine
+                </h1>
+                <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
+                    {">>"} {isMember ? "Synchronization of upcoming class protocols" : "Modulating temporal class clusters & sessions"}
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
                 {/* Left Column: Management Tools (Hidden for Members) */}
                 {!isMember && (
-                    <div className="space-y-6 lg:col-span-1">
+                    <div className="space-y-8 lg:col-span-1">
                         {/* Class Types Card */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    <Layers className="h-5 w-5 text-indigo-600" />
-                                    Class Types
+                        <div className="glass-morphism rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden relative group">
+                            <div className="p-8 border-b border-white/5 bg-white/2 relative z-10 flex items-center justify-between">
+                                <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
+                                    <div className="h-10 w-10 glass-morphism rounded-xl flex items-center justify-center border-indigo-500/30">
+                                        <Layers className="h-5 w-5 text-indigo-400" />
+                                    </div>
+                                    Class Models
                                 </h2>
                             </div>
-                            <div className="p-6 space-y-6">
+                            <div className="p-8 space-y-8 relative z-10">
                                 <CreateClassForm />
 
-                                <div className="space-y-3">
-                                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Existing Classes</h3>
-                                    <ul className="space-y-2">
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Active Templates</h3>
+                                    <ul className="space-y-3">
                                         {classes.length === 0 && (
-                                            <li className="text-sm text-gray-500 italic">No classes defined yet.</li>
+                                            <li className="text-[10px] text-zinc-600 font-mono uppercase tracking-widest italic">No models initialized.</li>
                                         )}
-                                        {classes.map((c) => (
-                                            <li key={c.id} className="group flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                                        {classes.map((c: any) => (
+                                            <li key={c.id} className="group/item flex items-center justify-between p-4 rounded-2xl glass-morphism border border-white/5 hover:border-indigo-500/30 transition-all bg-white/2 italic">
                                                 <div>
-                                                    <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-                                                    <p className="text-xs text-gray-500">{c.duration} mins • {c.capacity} spots</p>
+                                                    <p className="text-sm font-black text-white uppercase tracking-tighter">{c.name}</p>
+                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{c.duration} MINS • {c.capacity} UNITS</p>
                                                 </div>
                                             </li>
                                         ))}
@@ -64,18 +67,20 @@ export default async function SchedulePage() {
                         </div>
 
                         {/* Schedule Session Card */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    <Calendar className="h-5 w-5 text-indigo-600" />
-                                    Schedule Session
+                        <div className="glass-morphism rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden relative group">
+                            <div className="p-8 border-b border-white/5 bg-white/2 relative z-10">
+                                <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
+                                    <div className="h-10 w-10 glass-morphism rounded-xl flex items-center justify-center border-emerald-500/30">
+                                        <Calendar className="h-5 w-5 text-emerald-400" />
+                                    </div>
+                                    Initialize Session
                                 </h2>
                             </div>
-                            <div className="p-6">
+                            <div className="p-8 relative z-10">
                                 {classes.length > 0 ? (
                                     <ScheduleSessionForm classes={classes} />
                                 ) : (
-                                    <p className="text-sm text-gray-500">Create a class type first to schedule sessions.</p>
+                                    <p className="text-[10px] text-zinc-600 font-mono uppercase tracking-widest italic">Templates required for session initialization.</p>
                                 )}
                             </div>
                         </div>
@@ -83,55 +88,55 @@ export default async function SchedulePage() {
                 )}
 
                 {/* Right Column: Calendar / Upcoming Sessions */}
-                <div className={`space-y-6 ${!isMember ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                            <h3 className="text-lg font-bold text-gray-900">Upcoming Sessions</h3>
-                            <button className="text-sm font-medium text-indigo-600 hover:text-indigo-500">View Calendar</button>
+                <div className={`space-y-8 ${!isMember ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+                    <div className="glass-morphism rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden relative group">
+                        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/2 relative z-10">
+                            <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Manifest Stream</h3>
+                            <button className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-all">Full Calendar {">>"}</button>
                         </div>
-                        <ul role="list" className="divide-y divide-gray-100">
+                        <ul role="list" className="divide-y divide-white/5 relative z-10">
                             {sessions.length === 0 && (
-                                <li className="p-12 text-center">
-                                    <div className="mx-auto h-12 w-12 text-gray-300 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-                                        <Calendar className="h-6 w-6" />
+                                <li className="p-24 text-center">
+                                    <div className="mx-auto h-20 w-20 glass-morphism rounded-full flex items-center justify-center mb-6 border border-white/10">
+                                        <Calendar className="h-8 w-8 text-zinc-800" />
                                     </div>
-                                    <p className="text-gray-500">No sessions scheduled.</p>
+                                    <p className="text-sm font-black text-zinc-600 uppercase italic tracking-widest">No active protocols detected.</p>
                                 </li>
                             )}
-                            {sessions.map((session) => {
+                            {sessions.map((session: any) => {
                                 const sessionDate = new Date(session.startTime);
                                 const isFull = session._count.bookings >= session.class.capacity;
 
                                 return (
-                                    <li key={session.id} className="group hover:bg-gray-50 transition-colors">
-                                        <div className="px-6 py-5 flex items-center gap-6">
+                                    <li key={session.id} className="group/session hover:bg-white/5 transition-all">
+                                        <div className="px-8 py-6 flex items-center gap-8 italic">
                                             {/* Date Block */}
-                                            <div className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-16 rounded-2xl bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                <span className="text-xs font-bold uppercase">{sessionDate.toLocaleString('default', { month: 'short' })}</span>
-                                                <span className="text-xl font-bold">{sessionDate.getDate()}</span>
+                                            <div className="flex-shrink-0 flex flex-col items-center justify-center h-20 w-20 rounded-[1.5rem] glass-morphism border border-white/10 group-hover/session:border-indigo-500/30 transition-all shadow-[0_0_20px_rgba(0,0,0,0.2)]">
+                                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{sessionDate.toLocaleString('default', { month: 'short' })}</span>
+                                                <span className="text-3xl font-black text-white tracking-tighter">{sessionDate.getDate()}</span>
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="text-2xl font-black text-white tracking-tighter uppercase group-hover/session:text-indigo-400 transition-colors">
                                                         {session.class.name}
                                                     </h4>
                                                     {!isMember && (
-                                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${session.status === 'SCHEDULED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                                        <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[8px] font-black uppercase tracking-widest border italic ${session.status === 'SCHEDULED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-zinc-500 border-white/5'
                                                             }`}>
-                                                            {session.status}
+                                                            {session.status} ACTIVE
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="mt-1 flex items-center gap-4 text-sm text-gray-500">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock className="h-4 w-4 text-gray-400" />
-                                                        {sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                <div className="flex items-center gap-6 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="h-3.5 w-3.5 text-zinc-700" />
+                                                        <span className="text-zinc-400 font-mono tracking-widest">{sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Users className="h-4 w-4 text-gray-400" />
-                                                        <span className={isFull ? "text-amber-600 font-medium" : ""}>
-                                                            {session._count.bookings} / {session.class.capacity}
+                                                    <div className="flex items-center gap-2">
+                                                        <Users className="h-3.5 w-3.5 text-zinc-700" />
+                                                        <span className={isFull ? "text-amber-400 font-black" : "text-zinc-400"}>
+                                                            {session._count.bookings} / {session.class.capacity} NODES
                                                         </span>
                                                     </div>
                                                 </div>
@@ -144,10 +149,9 @@ export default async function SchedulePage() {
                                                         isBooked={session.bookings.length > 0}
                                                     />
                                                 ) : (
-                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {/* Manage Button Placeholder */}
-                                                        <button className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50">
-                                                            <MoreHorizontal className="h-5 w-5" /> {/* Need to import MoreHorizontal */}
+                                                    <div className="opacity-0 group-hover/session:opacity-100 transition-opacity">
+                                                        <button className="h-12 w-12 flex items-center justify-center rounded-2xl glass-morphism border border-white/5 text-zinc-600 hover:text-white transition-all">
+                                                            <MoreHorizontal className="h-5 w-5" />
                                                         </button>
                                                     </div>
                                                 )}

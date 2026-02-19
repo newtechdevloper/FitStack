@@ -1,52 +1,41 @@
-datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// -----------------------------------------------------------------------------
-// GLOBAL PLATFORM MODELS
-// -----------------------------------------------------------------------------
-
-// enum GlobalRole removed for SQLite
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
 
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String       @unique
   emailVerified DateTime?
   image         String?
-  password      String? // Hashed password for credentials auth
-  globalRole    String @default("USER")
-  
+  password      String?
+  globalRole    String       @default("USER")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   accounts      Account[]
   sessions      Session[]
-  
-  // Relations to Tenants (Memberships/Staff roles)
   memberships   TenantUser[]
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -67,132 +56,97 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// -----------------------------------------------------------------------------
-// TENANT MODELS
-// -----------------------------------------------------------------------------
-
-// enum SubscriptionStatus removed for SQLite
-
 model Tenant {
-  id            String   @id @default(cuid())
-  slug          String   @unique // Subdomain: goldgym.gymnexus.com
-  name          String
-  logoUrl       String?
-  primaryColor  String?  @default("#000000")
-  secondaryColor String? @default("#ffffff")
-  
-  // Platform Billing (SaaS)
+  id                 String              @id @default(cuid())
+  slug               String              @unique
+  name               String
+  logoUrl            String?
+  primaryColor       String?             @default("#000000")
+  secondaryColor     String?             @default("#ffffff")
   planId             String?
-  plan               Plan?    @relation(fields: [planId], references: [id])
-  
-  razorpayCustomerId   String?
+  razorpayCustomerId String?
+  razorpayAccountId  String?
+  chargesEnabled     Boolean             @default(false)
+  lifetimeValue      Decimal             @default(0)
+  cac                Decimal             @default(0)
+  features           String              @default("[]")
+  customDomain       String?             @unique
+  domainStatus       String              @default("PENDING") // PENDING, VERIFIED, FAILED
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  bookings           Booking[]
+  classes            Class[]
+  corporateAccounts  CorporateAccount[]
+  financials         FinancialSnapshot[]
+  membershipPlans    MembershipPlan[]
+  plan               Plan?               @relation(fields: [planId], references: [id])
   tenantSubscription TenantSubscription?
-
-  // Gym Billing (Razorpay Route for marketplace payouts)
-  razorpayAccountId    String? // The gym's Razorpay Route account reference
-  chargesEnabled     Boolean @default(false)
-
-  // Financial Performance Cache (Updated nightly)
-  lifetimeValue Decimal @default(0)
-  cac           Decimal @default(0) // Customer Acquisition Cost
-
-  // Relations
-  users           TenantUser[]
-  membershipPlans MembershipPlan[]
-  classes         Class[]
-  bookings        Booking[] 
-  usageRecords    UsageRecord[]
-  financials      FinancialSnapshot[]
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  users              TenantUser[]
+  usageRecords       UsageRecord[]
 }
 
-// -----------------------------------------------------------------------------
-// ENTERPRISE BILLING MODELS
-// -----------------------------------------------------------------------------
-
 model Plan {
-  id            String   @id @default(cuid())
-  key           String   @unique // "STARTER", "GROWTH", "PRO"
-  name          String
-  description   String?
-  
-  // Stripe Data
-  stripeProductId String? // Nullable for seed/dev
-  stripePriceId   String? // Nullable for seed/dev
-  
-  // Limits & Entitlements
-  maxMembers       Int     @default(50)
-  maxClassesPerWeek Int    @default(50)
-  platformFeePercent Decimal @default(1.0) // 1%
-  
-  // Feature Flags (JSON)
-  features         String  @default("[]")
-
-  tenants       Tenant[]
+  id                  String               @id @default(cuid())
+  key                 String               @unique
+  name                String
+  description         String?
+  stripeProductId     String?
+  stripePriceId       String?
+  maxMembers          Int                  @default(50)
+  maxClassesPerWeek   Int                  @default(50)
+  platformFeePercent  Decimal              @default(1.0)
+  features            String               @default("[]")
+  createdAt           DateTime             @default(now())
+  tenants             Tenant[]
   tenantSubscriptions TenantSubscription[]
-  createdAt     DateTime @default(now())
 }
 
 model TenantSubscription {
-  id            String   @id @default(cuid())
-  tenantId      String   @unique
-  planId        String
-  razorpaySubscriptionId String? @unique // Nullable for manual/free plans
-  status        String   @default("active") // "active", "past_due", "canceled", "trialing"
-  
-  currentPeriodStart DateTime @default(now())
-  currentPeriodEnd   DateTime @default(now())
-  
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  plan          Plan     @relation(fields: [planId], references: [id])
+  id                     String   @id @default(cuid())
+  tenantId               String   @unique
+  planId                 String
+  razorpaySubscriptionId String?  @unique
+  status                 String   @default("active")
+  currentPeriodStart     DateTime @default(now())
+  currentPeriodEnd       DateTime @default(now())
+  plan                   Plan     @relation(fields: [planId], references: [id])
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model UsageRecord {
   id            String   @id @default(cuid())
   tenantId      String
-  metric        String   // "whatsapp_msg", "sms_sent"
+  metric        String
   quantity      Int
-  stripeEventId String?  // Idempotency key
+  stripeEventId String?
   timestamp     DateTime @default(now())
-  
   tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
+
   @@index([tenantId, metric, timestamp])
 }
 
 model FinancialSnapshot {
-  id            String   @id @default(cuid())
-  tenantId      String
-  month         DateTime // YYYY-MM-01
-  
-  mrr           Decimal  // Monthly Recurring Revenue for this month
-  usageFees     Decimal  // Overage fees
-  platformFees  Decimal  // Collected via Connect
-  
-  churned       Boolean  @default(false)
-  
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
+  id           String   @id @default(cuid())
+  tenantId     String
+  month        DateTime
+  mrr          Decimal
+  usageFees    Decimal
+  platformFees Decimal
+  churned      Boolean  @default(false)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@unique([tenantId, month])
 }
 
-// Enums removed for SQLite compatibility
-
 model TenantUser {
-  id        String     @id @default(cuid())
-  userId    String
-  tenantId  String
-  role      String @default("MEMBER")
-  
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  // For Instructors: Classes they teach
+  id            String   @id @default(cuid())
+  userId        String
+  tenantId      String
+  role          String   @default("MEMBER")
+  joinedAt      DateTime @default(now())
   classesTaught Class[]
-
-  joinedAt  DateTime   @default(now())
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tenantId])
 }
@@ -201,198 +155,158 @@ model AuditLog {
   id        String   @id @default(cuid())
   tenantId  String
   userId    String
-  action    String   // "MEMBER_DELETE", "ROLE_UPDATE"
-  resource  String   // "TenantUser:123"
-  metadata  String?  // JSON diff or details
+  action    String
+  resource  String
+  metadata  String?
   ip        String?
   userAgent String?
-  
   createdAt DateTime @default(now())
 
   @@index([tenantId])
 }
 
-// -----------------------------------------------------------------------------
-// GYM OPERATION MODELS
-// -----------------------------------------------------------------------------
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
 model MembershipPlan {
-  id            String   @id @default(cuid())
-  tenantId      String
-  name          String
-  description   String?
-  price         Decimal
-  interval      String   // "month", "year"
-  type          String   @default("INDIVIDUAL") // "INDIVIDUAL", "CORPORATE", "FAMILY"
-  stripePriceId String?
-
-  allowPause    Boolean  @default(true)
-  pauseLimitDays Int     @default(60)
-
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  subscriptions Subscription[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String         @id @default(cuid())
+  tenantId       String
+  name           String
+  description    String?
+  price          Decimal
+  interval       String
+  type           String         @default("INDIVIDUAL")
+  stripePriceId  String?
+  allowPause     Boolean        @default(true)
+  pauseLimitDays Int            @default(60)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscriptions  Subscription[]
 }
 
 model CorporateAccount {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   tenantId      String
   name          String
   billingEmail  String
-  maxMembers    Int      @default(50)
-  
+  maxMembers    Int            @default(50)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   subscriptions Subscription[]
-
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }
 
 model Subscription {
-  id               String   @id @default(cuid())
-  tenantId         String
-  userId           String   // The Member
-  planId           String
-  
-  status           String   @default("ACTIVE") // ACTIVE, PAUSED, CANCELED, PAST_DUE
-  currentPeriodEnd DateTime?
+  id                   String            @id @default(cuid())
+  tenantId             String
+  userId               String
+  planId               String
+  status               String            @default("ACTIVE")
+  currentPeriodEnd     DateTime?
   stripeSubscriptionId String?
-
-  // Pause Logic
-  pauseDate        DateTime?
-  resumeDate       DateTime?
-
-  // Corporate Billing
-  corporateAccountId String?
-  corporateAccount   CorporateAccount? @relation(fields: [corporateAccountId], references: [id])
-
-  plan             MembershipPlan @relation(fields: [planId], references: [id])
-  schedules        BillingSchedule[]
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  pauseDate            DateTime?
+  resumeDate           DateTime?
+  corporateAccountId   String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  schedules            BillingSchedule[]
+  plan                 MembershipPlan    @relation(fields: [planId], references: [id])
+  corporateAccount     CorporateAccount? @relation(fields: [corporateAccountId], references: [id])
 }
 
 model BillingSchedule {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   tenantId       String
   subscriptionId String
   dueDate        DateTime
   amount         Decimal
-  status         String   @default("PENDING") // PENDING, PAID, FAILED, VOID
+  status         String       @default("PENDING")
   invoiceLink    String?
-
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 }
 
 model Wallet {
-  id            String   @id @default(cuid())
-  tenantId      String
-  userId        String
-  balance       Decimal  @default(0)
-  
-  transactions  WalletTransaction[]
-  
-  updatedAt     DateTime @updatedAt
+  id           String              @id @default(cuid())
+  tenantId     String
+  userId       String
+  balance      Decimal             @default(0)
+  updatedAt    DateTime            @updatedAt
+  transactions WalletTransaction[]
 
   @@unique([tenantId, userId])
 }
 
 model WalletTransaction {
-  id            String   @id @default(cuid())
-  walletId      String
-  amount        Decimal
-  type          String   // CREDIT, DEBIT
-  description   String?
-  referenceId   String?  // BookingID or InvoiceID
-  
-  wallet        Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
+  id          String   @id @default(cuid())
+  walletId    String
+  amount      Decimal
+  type        String
+  description String?
+  referenceId String?
+  createdAt   DateTime @default(now())
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
 }
 
 model Outbox {
-  id        String   @id @default(cuid())
-  channel   String   // "EMAIL", "SMS", "INTERNAL"
-  event     String   // "SUBSCRIPTION_UPDATED"
-  payload   String   // JSON
-  status    String   @default("PENDING")
-  
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  channel     String
+  event       String
+  payload     String
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
   processedAt DateTime?
 }
 
 model Class {
-  id            String   @id @default(cuid())
-  tenantId      String
-  name          String
-  description   String?
-  capacity      Int      @default(10)
-  duration      Int      // in minutes
-  
-  instructorId  String?
-  instructor    TenantUser? @relation(fields: [instructorId], references: [id])
-  
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sessions      ClassSession[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String         @id @default(cuid())
+  tenantId     String
+  name         String
+  description  String?
+  capacity     Int            @default(10)
+  duration     Int
+  instructorId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  instructor   TenantUser?    @relation(fields: [instructorId], references: [id])
+  sessions     ClassSession[]
 }
 
-
-
 model ClassSession {
-  id        String      @id @default(cuid())
+  id        String    @id @default(cuid())
   classId   String
   startTime DateTime
   endTime   DateTime
-  status    String @default("SCHEDULED")
-  
-  class     Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  status    String    @default("SCHEDULED")
   bookings  Booking[]
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
-
-
 
 model Booking {
-  id        String        @id @default(cuid())
-  tenantId  String        // Denormalized for efficient RLS / querying
-  sessionId String
-  userId    String        // The Member
-  status    String @default("CONFIRMED")
-  
-  session   ClassSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id         String       @id @default(cuid())
+  tenantId   String
+  sessionId  String
+  userId     String
+  status     String       @default("CONFIRMED")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
   attendance Attendance?
-
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
-
-
 model Attendance {
-  id        String           @id @default(cuid())
-  bookingId String           @unique
-  status    String @default("PRESENT")
-  checkInTime DateTime     @default(now())
-
-  booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  status      String   @default("PRESENT")
+  checkInTime DateTime @default(now())
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 model WebhookEvent {
-  id        String   @id // Stripe Event ID (evt_...)
-  type      String   // checkout.session.completed, etc.
-  status    String   // "processing", "completed", "failed"
+  id        String   @id
+  type      String
+  status    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
