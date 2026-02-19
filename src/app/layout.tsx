@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 
 import { Toaster } from "@/components/ui/sonner";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function RootLayout({
   children,
@@ -34,6 +35,7 @@ export default function RootLayout({
       >
         <ImpersonationBanner />
         {children}
+        <Analytics />
         <Toaster />
       </body>
     </html>
