@@ -61,13 +61,23 @@ export default async function AdminPage() {
     let data;
     try {
         data = await getAdminStats();
-    } catch (error) {
+    } catch (error: any) {
         console.error("Dashboard Stats Fetch Error:", error);
+        console.error("Error Message:", error.message);
+        console.error("Error Code:", error.code);
         return (
-            <div className="p-8 glass-morphism rounded-3xl border border-red-500/20 bg-red-500/5">
+            <div className="p-8 glass-morphism rounded-3xl border [targetContent] border-red-500/20 bg-red-500/5">
                 <p className="text-red-400 font-mono text-xs uppercase tracking-widest">
-                    [SYSTEM_ERROR] Failed to synchronize dashboard telemetry. Check database connection.
+                    [SYSTEM_ERROR] Failed to synchronize dashboard telemetry.
                 </p>
+                <p className="text-red-500/60 font-mono text-[10px] mt-4 break-all">
+                    MSG: {error.message}
+                </p>
+                {error.code && (
+                    <p className="text-red-500/40 font-mono text-[9px] mt-1">
+                        CODE: {error.code}
+                    </p>
+                )}
             </div>
         );
     }

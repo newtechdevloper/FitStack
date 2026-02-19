@@ -1,7 +1,7 @@
 const { Client } = require('pg');
-const connectionString = "postgresql://postgres.ntckomiybdxizxpijnmm:Ishan250420%40@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = "postgresql://postgres:Ishan250420%40@db.ntckomiybdxizxpijnmm.supabase.co:5432/postgres";
 
-console.log("Attempting to connect to:", connectionString.replace(/:[^:@]+@/, ":****@"));
+console.log("Attempting standard direct connection to:", connectionString.replace(/:[^:@]+@/, ":****@"));
 
 const client = new Client({
     connectionString: connectionString,
