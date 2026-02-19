@@ -6,6 +6,8 @@ import {
     AlertTriangle, ArrowUpRight, ArrowDownRight, Zap, Globe, Shield
 } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Super Admin | FitStack',
 };
