@@ -27,10 +27,12 @@ export default function DashboardPage() {
                             Log Analysis
                         </button>
                     </Link>
-                    <button className="neon-border-cyan glass-morphism text-cyan-400 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-cyan-500/10 transition-all flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Inject Revenue
-                    </button>
+                    <Link href="/dashboard/billing">
+                        <button className="neon-border-cyan glass-morphism text-cyan-400 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-cyan-500/10 transition-all flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            Inject Revenue
+                        </button>
+                    </Link>
                 </div>
             </div>
 
@@ -112,13 +114,14 @@ export default function DashboardPage() {
                             </Link>
                         </div>
                         <div className="space-y-3">
+                            {/* Session mapping with Links */}
                             {[
                                 { name: "Morning Flow", time: "09:00", instructor: "Sarah J.", color: "text-cyan-400 shadow-cyan-500/20 border-cyan-500/20" },
                                 { name: "HIIT Intensity", time: "10:30", instructor: "Mike T.", color: "text-fuchsia-400 shadow-fuchsia-500/20 border-fuchsia-500/20" },
                                 { name: "Power Lifting", time: "14:00", instructor: "Alex R.", color: "text-indigo-400 shadow-indigo-500/20 border-indigo-500/20" },
                                 { name: "Eve Pilates", time: "18:00", instructor: "Jenna W.", color: "text-emerald-400 shadow-emerald-500/20 border-emerald-500/20" },
                             ].map((session, i) => (
-                                <div key={i} className="flex items-center gap-4 p-4 glass-morphism border-white/5 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group">
+                                <Link key={i} href="/dashboard/schedule" className="flex items-center gap-4 p-4 glass-morphism border-white/5 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group">
                                     <div className={`h-12 w-12 rounded-xl glass-morphism border flex items-center justify-center font-black text-xs italic ${session.color}`}>
                                         {session.time}
                                     </div>
@@ -129,7 +132,7 @@ export default function DashboardPage() {
                                     <div className="h-8 w-8 rounded-full border border-white/5 flex items-center justify-center group-hover:bg-white/10 text-zinc-600 group-hover:text-indigo-400 transition-all">
                                         <ArrowUpRight className="h-4 w-4" />
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -151,9 +154,11 @@ export default function DashboardPage() {
                             <span className="text-4xl font-black text-white italic tracking-tighter">$79</span>
                             <span className="text-xs text-indigo-400 font-black uppercase tracking-widest">/cycle</span>
                         </div>
-                        <button className="w-full py-4 rounded-2xl bg-indigo-500 text-white font-black uppercase text-xs tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] transition-all active:scale-95 relative z-10">
-                            Manage Protocol
-                        </button>
+                        <Link href="/dashboard/billing">
+                            <button className="w-full py-4 rounded-2xl bg-indigo-500 text-white font-black uppercase text-xs tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] transition-all active:scale-95 relative z-10">
+                                Manage Protocol
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>

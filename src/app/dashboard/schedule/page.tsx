@@ -5,6 +5,7 @@ import { BookClassButton } from "@/components/dashboard/BookClassButton";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Calendar, Clock, Users, Plus, Layers, MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 
 export default async function SchedulePage() {
     const session = await auth();
@@ -92,7 +93,7 @@ export default async function SchedulePage() {
                     <div className="glass-morphism rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden relative group">
                         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/2 relative z-10">
                             <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Manifest Stream</h3>
-                            <button className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-all">Full Calendar {">>"}</button>
+                            <Link href="/dashboard/schedule" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-all">Full Calendar {">>"}</Link>
                         </div>
                         <ul role="list" className="divide-y divide-white/5 relative z-10">
                             {sessions.length === 0 && (

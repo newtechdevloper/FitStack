@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Megaphone, Send, Globe, Building2, Users, Bell, CheckCircle } from "lucide-react";
+import { broadcastAnnouncement } from "@/server/actions/admin";
 
 export default function AnnouncementsPage() {
     const [title, setTitle] = useState("");
@@ -9,14 +10,21 @@ export default function AnnouncementsPage() {
     const [audience, setAudience] = useState("ALL");
     const [type, setType] = useState("INFO");
     const [sent, setSent] = useState(false);
+    const [isPending, setIsPending] = useState(false);
 
     const handleSend = async () => {
-        // In production: POST /api/admin/announcements
-        console.log({ title, message, audience, type });
-        setSent(true);
-        setTimeout(() => setSent(false), 3000);
-        setTitle("");
-        setMessage("");
+        setIsPending(true);
+        try {
+            await broadcastAnnouncement(title, message);
+            setSent(true);
+            setTimeout(() => setSent(false), 3000);
+            setTitle("");
+            setMessage("");
+        } catch (error) {
+            console.error("Broadcast failed:", error);
+        } finally {
+            setIsPending(false);
+        }
     };
 
     const pastAnnouncements = [
@@ -116,7 +124,7 @@ export default function AnnouncementsPage() {
                     </div>
                     <button
                         onClick={handleSend}
-                        disabled={!title || !message}
+                        disabled={!title || !message || isPending}
                         className={`flex items-center gap-3 rounded-2xl px-8 py-3.5 text-xs font-black uppercase tracking-widest transition-all shadow-2xl ${sent
                             ? "bg-emerald-500 text-white shadow-emerald-500/20"
                             : "neon-border-cyan glass-morphism text-cyan-400 hover:bg-cyan-500/10 disabled:opacity-30 disabled:cursor-not-allowed"
@@ -124,6 +132,8 @@ export default function AnnouncementsPage() {
                     >
                         {sent ? (
                             <><CheckCircle className="h-4 w-4" /> Broadcast Initiated</>
+                        ) : isPending ? (
+                            <><Megaphone className="h-4 w-4 animate-bounce" /> Transmitting...</>
                         ) : (
                             <><Send className="h-4 w-4" /> Start Broadcast</>
                         )}
