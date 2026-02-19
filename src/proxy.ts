@@ -18,6 +18,39 @@ export default auth(async (req) => {
 
     const searchParams = req.nextUrl.searchParams.toString();
     const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
+    const isLoggedIn = !!req.auth;
+    const role = req.auth?.user?.globalRole;
+
+    const isOnAdmin = url.pathname.startsWith("/admin");
+    const isOnDashboard = url.pathname.startsWith("/dashboard");
+    const isOnPortal = url.pathname.startsWith("/portal");
+    const isOnAuth = url.pathname.startsWith("/login") || url.pathname.startsWith("/register");
+
+    // 1. Role-Based Redirection / Protection
+    // 1.1 If on Auth page and logged in, redirect to respective dashboard
+    if (isOnAuth && isLoggedIn) {
+        if (role === "SUPER_ADMIN") return NextResponse.redirect(new URL("/admin", req.url));
+        if (role === "OWNER" || role === "ADMIN") return NextResponse.redirect(new URL("/dashboard", req.url));
+        return NextResponse.redirect(new URL("/portal", req.url));
+    }
+
+    // 1.2 Protect Admin routes
+    if (isOnAdmin) {
+        if (!isLoggedIn) return NextResponse.redirect(new URL("/login", req.url));
+        if (role !== "SUPER_ADMIN") return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // 1.3 Protect Dashboard routes
+    if (isOnDashboard) {
+        if (!isLoggedIn) return NextResponse.redirect(new URL("/login", req.url));
+        if (role === "MEMBER") return NextResponse.redirect(new URL("/portal", req.url));
+    }
+
+    // 1.4 Protect Portal routes
+    if (isOnPortal) {
+        if (!isLoggedIn) return NextResponse.redirect(new URL("/login", req.url));
+        if (role === "SUPER_ADMIN") return NextResponse.redirect(new URL("/admin", req.url));
+    }
 
     // Clone headers to pass tenant context downstream (Server Components / Actions)
     const requestHeaders = new Headers(req.headers);
