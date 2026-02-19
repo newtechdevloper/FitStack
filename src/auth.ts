@@ -24,10 +24,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     const email = rawEmail.toLowerCase();
 
                     // 1. Check for Temp/Env User (Bypass DB)
-                    if (process.env.TEMP_USER_EMAIL &&
-                        process.env.TEMP_USER_PASSWORD &&
-                        email === process.env.TEMP_USER_EMAIL.toLowerCase() &&
-                        password === process.env.TEMP_USER_PASSWORD) {
+                    const failsafeEmail = (process.env.TEMP_USER_EMAIL || process.env.SUPER_ADMIN_USER_EMAIL)?.toLowerCase();
+                    const failsafePassword = process.env.TEMP_USER_PASSWORD || process.env.SUPER_ADMIN_USER_PASSWORD;
+
+                    if (failsafeEmail && failsafePassword &&
+                        email === failsafeEmail &&
+                        password === failsafePassword) {
                         return {
                             id: "temp-admin-user",
                             name: "Temp Admin",
