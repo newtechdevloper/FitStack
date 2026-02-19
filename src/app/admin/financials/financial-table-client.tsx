@@ -83,7 +83,7 @@ export function FinancialTableClient({ subscriptions, plans, statusConfig }: Fin
                                         <td className="px-8 py-5">
                                             <div className="flex flex-col">
                                                 <p className="font-black text-white text-sm uppercase tracking-tighter leading-none mb-1">{sub.tenant.name}</p>
-                                                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest leading-none">{sub.tenant.slug}.fitstack.com</p>
+                                                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest leading-none">Node: {sub.tenant.slug}</p>
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">

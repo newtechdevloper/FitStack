@@ -42,7 +42,7 @@ export default async function AnalyticsPage() {
                     Neural Analytics
                 </h1>
                 <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
-                    {">>"} Decrypting financial streams and growth metrics
+                    {">>"} Decrypting financial streams and node growth metrics
                 </p>
             </div>
 

@@ -42,7 +42,7 @@ export default async function BillingPage({
                         Fiscal Engine
                     </h1>
                     <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
-                        {">>"} Modulating subscription streams & payout gateways
+                        {">>"} Modulating subscription streams & commercial gateways
                     </p>
                 </div>
                 <div className="flex items-center gap-3">

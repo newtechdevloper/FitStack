@@ -33,71 +33,84 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-            <div className="absolute inset-0 overflow-hidden -z-10">
-                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--primary)] rounded-full blur-[120px] opacity-10"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[var(--secondary)] rounded-full blur-[120px] opacity-10"></div>
-            </div>
+        <div className="min-h-screen flex items-center justify-center mesh-gradient-bg px-4 py-12 relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-grid-white opacity-10 pointer-events-none" />
+            <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-fuchsia-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="w-full max-w-md space-y-8 glass-panel p-8 rounded-2xl shadow-2xl border border-white/10 relative">
-                <div className="flex flex-col items-center text-center">
-                    <Link href="/" className="flex items-center gap-2 mb-6">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--primary-glow)]">
-                            <Zap className="w-6 h-6 text-white fill-current" />
+            <div className="w-full max-w-md relative z-10">
+                <div className="text-center mb-10">
+                    <Link href="/" className="inline-block">
+                        <div className="mx-auto h-16 w-16 glass-morphism rounded-2xl flex items-center justify-center border-indigo-500/30 shadow-[0_0_30px_rgba(99,102,241,0.2)] hover:scale-110 transition-transform">
+                            <Zap className="h-8 w-8 text-indigo-400 fill-indigo-400/20" />
                         </div>
                     </Link>
-                    <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
-                    <p className="text-gray-400 text-sm">Sign in to your FitStack command center.</p>
+                    <h1 className="mt-8 text-3xl font-black text-white italic uppercase tracking-tighter">
+                        Nexus Authentication
+                    </h1>
+                    <p className="mt-2 text-cyan-400 font-mono text-[10px] uppercase tracking-[0.3em] font-bold">
+                        {">>"} Synchronize identity with command center
+                    </p>
                 </div>
 
-                <form action={handleSubmit} className="mt-8 space-y-6">
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="email" className="sr-only">Email address</label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                className="block w-full rounded-lg border-0 bg-white/5 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-[var(--primary)] sm:text-sm sm:leading-6 transition-all"
-                                placeholder="name@company.com"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">Password</label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                className="block w-full rounded-lg border-0 bg-white/5 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-[var(--primary)] sm:text-sm sm:leading-6 transition-all"
-                                placeholder="Password"
-                            />
-                        </div>
-                    </div>
+                <div className="holographic-card glass-morphism rounded-[2.5rem] border border-white/5 p-8 md:p-10 shadow-2xl relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                    {error && (
-                        <div className="rounded-md bg-red-500/10 p-4 border border-red-500/20">
-                            <div className="flex">
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-red-400">{error}</h3>
-                                </div>
+                    <form action={handleSubmit} className="space-y-8 relative z-10">
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label htmlFor="email" className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] px-1 italic">
+                                    Identity Vector (Email)
+                                </label>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    className="block w-full px-5 py-4 rounded-2xl glass-morphism border border-white/10 bg-white/2 text-white font-bold tracking-tight focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all placeholder:text-zinc-700 sm:text-sm"
+                                    placeholder="agent@fitstack.com"
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <label htmlFor="password" className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] px-1 italic">
+                                    Encrypted Key
+                                </label>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    className="block w-full px-5 py-4 rounded-2xl glass-morphism border border-white/10 bg-white/2 text-white font-bold tracking-tight focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all placeholder:text-zinc-700 sm:text-sm"
+                                    placeholder="••••••••"
+                                />
                             </div>
                         </div>
-                    )}
 
-                    <div>
-                        <SubmitButton />
-                    </div>
-                </form>
+                        {error && (
+                            <div className="glass-morphism rounded-xl p-4 border border-red-500/20 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest text-center italic">
+                                [ AUTH_ERROR ]: {error}
+                            </div>
+                        )}
 
-                <div className="text-center text-sm">
-                    <span className="text-gray-500">Don't have an account? </span>
-                    <Link href="/pricing" className="font-medium text-[var(--primary)] hover:text-white transition-colors">
-                        Start existing trial
-                    </Link>
+                        <div className="pt-2">
+                            <SubmitButton />
+                        </div>
+                    </form>
+                </div>
+
+                <div className="mt-10 text-center space-y-4">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                        New entity detected?{" "}
+                        <Link href="/pricing" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+                            Initiate Protocol
+                        </Link>
+                    </p>
+                    <p className="text-[8px] font-black text-zinc-800 uppercase tracking-[0.4em] italic opacity-50">
+                        Secure Uplink Verified // RSA-4096 Active
+                    </p>
                 </div>
             </div>
         </div>

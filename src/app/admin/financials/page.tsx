@@ -64,9 +64,9 @@ export default async function FinancialsPage() {
             {/* KPI Row - Holographic cards */}
             <div className="grid gap-6 md:grid-cols-4">
                 {[
-                    { label: "Rev Stream (MRR)", value: `$${mrr.toLocaleString()}`, icon: DollarSign, color: "text-emerald-400", border: "border-emerald-500/20" },
+                    { label: "Yield Stream (MRR)", value: `$${mrr.toLocaleString()}`, icon: DollarSign, color: "text-emerald-400", border: "border-emerald-500/20" },
                     { label: "Active Nodes", value: activeSubs.length, icon: CheckCircle, color: "text-blue-400", border: "border-blue-500/20" },
-                    { label: "Signal Loss (Due)", value: pastDue.length, icon: AlertCircle, color: "text-amber-400", border: "border-amber-500/20" },
+                    { label: "Neural Drift (Due)", value: pastDue.length, icon: AlertCircle, color: "text-amber-400", border: "border-amber-500/20" },
                     { label: "Decommissioned", value: canceled.length, icon: TrendingDown, color: "text-zinc-500", border: "border-zinc-500/20" },
                 ].map((kpi: any, i: number) => (
                     <div key={i} className={`holographic-card glass-morphism p-6 rounded-3xl border ${kpi.border} group`}>

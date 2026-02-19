@@ -20,7 +20,7 @@ export default async function ProfilePage() {
                     Neural Identity
                 </h1>
                 <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
-                    {">>"} Synchronizing personal parameters and access nodes
+                    {">>"} Synchronizing personal bio-matrix and access nodes
                 </p>
             </div>
 

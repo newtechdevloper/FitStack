@@ -27,7 +27,7 @@ export default async function SchedulePage() {
                     Chronos Engine
                 </h1>
                 <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
-                    {">>"} {isMember ? "Synchronization of upcoming class protocols" : "Modulating temporal class clusters & sessions"}
+                    {">>"} {isMember ? "Synchronization of upcoming neural protocols" : "Modulating temporal class clusters & node sessions"}
                 </p>
             </div>
 

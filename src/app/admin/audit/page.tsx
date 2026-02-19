@@ -14,10 +14,10 @@ export default async function AdminAuditPage() {
             {/* Header */}
             <div>
                 <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">
-                    System Telemetry
+                    Neural Telemetry
                 </h1>
                 <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
-                    {">>"} Real-time pulse monitoring of platform operations
+                    {">>"} Real-time pulse monitoring of platform synapses
                 </p>
             </div>
 

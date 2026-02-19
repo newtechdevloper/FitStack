@@ -52,10 +52,10 @@ export default async function RiskPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">
-                        Risk Core
+                        Risk Cortex
                     </h1>
                     <p className="text-cyan-400 font-mono text-xs mt-2 uppercase tracking-[0.3em]">
-                        {">>"} Monitoring platform security & fraud heuristics
+                        {">>"} Monitoring platform security & neural heuristics
                     </p>
                 </div>
                 <div className="flex items-center gap-3 text-glow">

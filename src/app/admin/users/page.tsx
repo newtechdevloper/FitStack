@@ -54,10 +54,10 @@ export default async function UsersPage() {
             {/* Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
-                    { label: "Accounts", value: users.length, icon: Users, color: "text-indigo-400", border: "border-indigo-500/20" },
-                    { label: "Privileged", value: totalAdmins, icon: Crown, color: "text-amber-400", border: "border-amber-500/20" },
-                    { label: "Engagement", value: users.filter((u: any) => u.memberships.length > 0).length, icon: Activity, color: "text-cyan-400", border: "border-cyan-500/20" },
-                    { label: "Nodes Connected", value: users.reduce((a: number, u: any) => a + u.memberships.length, 0), icon: Shield, color: "text-purple-400", border: "border-purple-500/20" },
+                    { label: "Active Identities", value: users.length, icon: Users, color: "text-indigo-400", border: "border-indigo-500/20" },
+                    { label: "Superuser Nodes", value: totalAdmins, icon: Crown, color: "text-amber-400", border: "border-amber-500/20" },
+                    { label: "Neural Activity", value: users.filter((u: any) => u.memberships.length > 0).length, icon: Activity, color: "text-cyan-400", border: "border-cyan-500/20" },
+                    { label: "Deployment Matrix", value: users.reduce((a: number, u: any) => a + u.memberships.length, 0), icon: Shield, color: "text-purple-400", border: "border-purple-500/20" },
                 ].map((s: any, i: number) => (
                     <div key={i} className={`holographic-card glass-morphism p-5 rounded-2xl border ${s.border} group`}>
                         <div className="flex items-center gap-3 mb-3">

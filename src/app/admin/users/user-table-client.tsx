@@ -128,15 +128,15 @@ export function UserTableClient({ initialUsers }: UserTableClientProps) {
                                                 {isBanned ? (
                                                     <button
                                                         onClick={() => unbanUser(user.id)}
-                                                        className="neon-border glass-morphism text-emerald-400 hover:bg-emerald-500/10 transition-colors p-2 rounded-xl"
-                                                        title="Restore Access"
+                                                        className="glass-morphism text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 transition-colors p-2 rounded-xl"
+                                                        title="Restore Access Protocol"
                                                     >
                                                         <UserCheck className="h-4 w-4" />
                                                     </button>
                                                 ) : (
                                                     <button
                                                         onClick={() => banUser(user.id)}
-                                                        className="neon-border glass-morphism text-red-400 hover:bg-red-500/10 transition-colors p-2 rounded-xl"
+                                                        className="glass-morphism text-red-400 border border-red-500/30 hover:bg-red-500/10 transition-colors p-2 rounded-xl"
                                                         title="Blacklist Protocol"
                                                     >
                                                         <Ban className="h-4 w-4" />
